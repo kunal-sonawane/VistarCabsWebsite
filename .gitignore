@@ -1,0 +1,16 @@
+**/node_modules/
+**/.next/
+frontend/.next-release/
+**/dist/
+**/.env
+**/.env.local
+**/.env.production
+**/data/inquiries.jsonl
+frontend/.npm-cache/
+frontend/.pw-browsers/
+frontend/test-results/
+frontend/playwright-report/
+frontend/.codex-next-*/
+frontend/.codex-final-build-*/
+frontend/build-vistar/
+frontend/vistar-release-*/

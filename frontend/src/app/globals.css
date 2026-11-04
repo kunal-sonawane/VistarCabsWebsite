@@ -1,0 +1,290 @@
+@import "tailwindcss";
+:root {
+  --vistar-blue: #0758c9;
+  --vistar-blue-bright: #0b68e8;
+  --vistar-gold: #ff9f16;
+  --vistar-gold-light: #ffc12f;
+  --vistar-cream: #e7f5ff;
+  --deep-navy: #071a2f;
+  --soft-neutral: #e7f5ff;
+  --ink: #182536;
+  --muted: #647286;
+  --line: #e2eaf2;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+}
+body {
+  margin: 0;
+  background: #fff;
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+}
+::selection {
+  background: #ffc12f;
+  color: #071a2f;
+}
+a,
+button,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+button,
+a {
+  touch-action: manipulation;
+}
+.container-wide {
+  width: min(1160px, calc(100% - 40px));
+  margin-inline: auto;
+}
+.eyebrow {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 800;
+}
+.hero-surface {
+  background:
+    radial-gradient(
+      ellipse at 82% 16%,
+      rgba(255, 255, 255, 0.22),
+      transparent 36%
+    ),
+    linear-gradient(118deg, #0758c9 0%, #0b68e8 54%, #2788f1 100%);
+}
+.booking-hero {
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(7, 26, 47, 0.58) 0%,
+      rgba(7, 26, 47, 0.34) 48%,
+      rgba(7, 26, 47, 0.1) 100%
+    ),
+    url("/images/cities/nashik-ramkund-clear.jpg");
+  background-position: center 48%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  isolation: isolate;
+}
+.scene-hills {
+  display: none;
+}
+.scene-hills::before,
+.scene-hills::after {
+  content: "";
+  position: absolute;
+  left: -8%;
+  right: -8%;
+  bottom: 0;
+}
+.scene-hills::before {
+  height: 42%;
+  background: linear-gradient(
+    165deg,
+    transparent 0 18%,
+    rgba(20, 50, 73, 0.45) 18.3% 100%
+  );
+  clip-path: polygon(
+    0 68%,
+    18% 33%,
+    34% 67%,
+    50% 17%,
+    70% 70%,
+    84% 30%,
+    100% 68%,
+    100% 100%,
+    0 100%
+  );
+}
+.scene-hills::after {
+  height: 30%;
+  background: linear-gradient(
+    180deg,
+    rgba(27, 54, 72, 0.48),
+    rgba(10, 30, 49, 0.78)
+  );
+  clip-path: polygon(
+    0 54%,
+    17% 20%,
+    32% 52%,
+    48% 10%,
+    65% 54%,
+    83% 16%,
+    100% 44%,
+    100% 100%,
+    0 100%
+  );
+}
+.scene-hills span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 16%;
+  background: linear-gradient(180deg, rgba(16, 37, 58, 0.6), #102342);
+  clip-path: polygon(
+    0 26%,
+    21% 5%,
+    40% 30%,
+    58% 0,
+    76% 24%,
+    100% 2%,
+    100% 100%,
+    0 100%
+  );
+}
+.scene-hills i {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(74vw, 900px);
+  height: 44%;
+  transform: translateX(-50%);
+  border-radius: 50% 50% 0 0;
+  background: radial-gradient(
+    ellipse at 50% 110%,
+    rgba(244, 119, 33, 0.26),
+    transparent 45%
+  );
+}
+.enquiry-card input,
+.enquiry-card select {
+  min-height: 44px;
+}
+.trip-tab {
+  white-space: nowrap;
+}
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.car-art {
+  filter: drop-shadow(0 28px 24px rgba(0, 0, 0, 0.22));
+}
+.section-pad {
+  padding-block: 84px;
+}
+:focus-visible {
+  outline: 3px solid #ff9f16;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+@media (max-width: 640px) {
+  .container-wide {
+    width: min(100% - 28px, 1160px);
+  }
+  .section-pad {
+    padding-block: 58px;
+  }
+}
+@media (max-width: 380px) {
+  .trip-tab {
+    font-size: 10px;
+    padding-inline: 0.25rem;
+  }
+  .enquiry-card {
+    padding: 12px;
+  }
+}
+
+/* Phase 5 responsive booking controls */
+.trip-tab {
+  min-width: 0;
+}
+.floating-contact-link {
+  position: relative;
+  isolation: isolate;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.floating-contact-link::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -4px;
+  border: 2px solid currentColor;
+  border-radius: 9999px;
+  opacity: 0.55;
+  animation: contact-pulse 2.2s ease-out infinite;
+}
+.floating-contact-link:hover {
+  transform: translateY(-2px) scale(1.07);
+  box-shadow: 0 12px 30px rgba(7, 26, 47, 0.22);
+}
+@keyframes contact-pulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.5;
+  }
+  80%,
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+.review-rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.review-rail::-webkit-scrollbar {
+  display: none;
+}
+@media (max-width: 1023px) {
+  .booking-hero {
+    background-position: 60% center;
+  }
+}
+@media (max-width: 640px) {
+  .booking-hero {
+    background-position: 63% center;
+  }
+  .enquiry-card {
+    border-radius: 18px;
+  }
+  .enquiry-card input,
+  .enquiry-card select {
+    min-height: 46px;
+    font-size: 16px;
+  }
+  .trip-tab {
+    min-height: 42px;
+    white-space: normal;
+    line-height: 1.15;
+  }
+}
+@media (max-width: 360px) {
+  .container-wide {
+    width: calc(100% - 22px);
+  }
+  .enquiry-card {
+    padding: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .floating-contact-link::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+
