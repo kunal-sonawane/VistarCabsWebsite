@@ -7,7 +7,7 @@ Vistar Cabs is a cab enquiry website focused on Nashik and journeys across Mahar
 - Responsive homepage with trip enquiry form, services, Kumbh Mela information, cities, airports, destinations, customer feedback, popular routes and FAQs.
 - Information pages for cities, airports, destinations, services, blogs and routes.
 - Enquiry form for Outstation, Airport, Hourly and Corporate trips. It collects trip and callback details, saves the enquiry to MongoDB, and then opens a prefilled WhatsApp message for the customer to send.
-- Admin area at `/admin` for enquiries, website pages, SEO, media, reviews, settings and other role-appropriate tools.
+- Admin area at `/vistar-console` for enquiries, website pages, SEO, media, reviews, settings and other role-appropriate tools.
 - SEO editor account for website content and search metadata.
 
 ## Technologies and dependencies
@@ -58,7 +58,7 @@ Open `http://localhost:3000`. To check on a phone connected to the same Wi-Fi, s
 ## Useful pages
 
 - Homepage: `/`
-- Admin sign-in: `/admin`
+- Admin sign-in: `/vistar-console`
 - Health check: `http://localhost:5000/api/health`
 - Visitor instructions: [Website visitor guide](docs/WEBSITE_USER_GUIDE.md)
 - Owner admin instructions: [Admin panel guide](docs/ADMIN_PANEL_GUIDE.md)

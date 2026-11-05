@@ -1,6 +1,6 @@
 # SEO editor guide
 
-The SEO editor account is for managing approved website content and search metadata. Sign in at `/admin` with the SEO username and password configured in `backend/.env` as `SEO_ADMIN_USERNAME` and `SEO_ADMIN_PASSWORD`. Ask the owner to create or provide the account securely. Do not share credentials in the project ZIP.
+The SEO editor account is for managing approved website content and search metadata. Sign in at `/vistar-console` with the SEO username and password configured in `backend/.env` as `SEO_ADMIN_USERNAME` and `SEO_ADMIN_PASSWORD`. Ask the owner to create or provide the account securely. Do not share credentials in the project ZIP.
 
 ## Find and edit an existing page
 

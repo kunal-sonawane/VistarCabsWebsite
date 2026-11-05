@@ -1,11 +1,11 @@
 # Owner admin panel guide
 
-The admin panel is at `/admin` on the website. The owner account has access to operational enquiries and the wider website management tools. Keep the username, password and signed-in device private.
+The admin panel is at `/vistar-console` on the website. The owner account has access to operational enquiries and the wider website management tools. Keep the username, password and signed-in device private.
 
 ## Sign in and sign out
 
 1. Start the backend and frontend as described in the main README.
-2. Open `http://localhost:3000/admin`.
+2. Open `http://localhost:3000/vistar-console`.
 3. Sign in with the owner username and password configured in `backend/.env` as `ADMIN_USERNAME` and `ADMIN_PASSWORD`.
 4. Use the admin navigation to open a section. Sign out when finished, especially on a shared computer.
 
