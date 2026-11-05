@@ -1178,6 +1178,20 @@ router.put("/duty-slips/:id", requireOwner, async (req, res, next) => {
   }
 });
 
+router.delete("/duty-slips/:id", requireOwner, async (req, res, next) => {
+  try {
+    if (!idOr404(req.params.id, res)) return;
+    const row = await DutySlip.findByIdAndDelete(req.params.id);
+    if (!row) {
+      res.status(404).json({ ok: false, message: "Duty slip not found." });
+      return;
+    }
+    audit(req, "delete", "duty-slip", String(row.id), row.slipNumber);
+    res.json({ ok: true, message: "Duty slip deleted." });
+  } catch (error) {
+    next(error);
+  }
+});
 router.get("/drivers", requireOwner, async (_req, res, next) => {
   try {
     res.json({

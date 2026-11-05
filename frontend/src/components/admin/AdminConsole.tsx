@@ -388,12 +388,14 @@ function Button({
   onClick,
   disabled = false,
   secondary = false,
+  danger = false,
   type = "button",
 }: {
   children: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
   secondary?: boolean;
+  danger?: boolean;
   type?: "button" | "submit";
 }) {
   return (
@@ -401,7 +403,7 @@ function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition disabled:cursor-wait disabled:opacity-50 ${secondary ? "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" : "bg-[#0758c9] text-white hover:bg-[#0649a6]"}`}
+      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-black transition disabled:cursor-wait disabled:opacity-50 ${danger ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100" : secondary ? "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50" : "bg-[#0758c9] text-white hover:bg-[#0649a6]"}`}
     >
       {children}
     </button>
@@ -956,6 +958,8 @@ export default function AdminConsole() {
             <DutySlips
               rows={rows}
               save={save}
+              remove={remove}
+              busy={busy}
               refresh={() => load("dutySlips")}
             />
           )}
@@ -3744,10 +3748,14 @@ const emptyDutySlip = {
 function DutySlips({
   rows,
   save,
+  remove,
+  busy,
   refresh,
 }: {
   rows: Row[];
   save: (path: string, method?: string, body?: unknown) => Promise<boolean>;
+  remove: (path: string, what: string) => Promise<void>;
+  busy: boolean;
   refresh: () => void;
 }) {
   const [value, setValue] = useState({ ...emptyDutySlip });
@@ -3940,6 +3948,19 @@ function DutySlips({
                   }}
                 >
                   Complete / edit
+                </Button>
+                <Button
+                  type="button"
+                  danger
+                  disabled={busy}
+                  onClick={() =>
+                    void remove(
+                      `/duty-slips/${row._id}`,
+                      `duty slip ${row.slipNumber}`,
+                    )
+                  }
+                >
+                  Delete
                 </Button>
               </div>
             </div>
