@@ -210,6 +210,22 @@ a {
 .trip-tab {
   min-width: 0;
 }
+.floating-contact-nav {
+  position: fixed;
+  inset-inline: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 100;
+  pointer-events: none;
+}
+.floating-contact-nav > a {
+  pointer-events: auto;
+}
+@media (min-width: 640px) {
+  .floating-contact-nav {
+    inset-inline: 20px;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+}
 .floating-contact-link {
   position: relative;
   isolation: isolate;

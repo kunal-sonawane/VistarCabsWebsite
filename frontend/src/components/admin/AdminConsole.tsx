@@ -3761,6 +3761,7 @@ function DutySlips({
   const [value, setValue] = useState({ ...emptyDutySlip });
   const [editing, setEditing] = useState("");
   const [printRow, setPrintRow] = useState<Row | null>(null);
+  const [printAttempt, setPrintAttempt] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (!printRow) return;
@@ -3771,7 +3772,7 @@ function DutySlips({
       window.clearTimeout(timer);
       window.removeEventListener("afterprint", finish);
     };
-  }, [printRow]);
+  }, [printRow, printAttempt]);
   const set = (key: string, next: string) =>
     setValue((old) => ({ ...old, [key]: next }));
   const submit = (event: React.FormEvent) => {
@@ -3783,7 +3784,7 @@ function DutySlips({
       tripAmount: Number(value.tripAmount || 0),
     };
     void save(
-      editing ? `/duty-slips/${editing}` : "/duty-slips",
+      editing ? `/duty-slips/${encodeURIComponent(editing)}` : "/duty-slips",
       editing ? "PUT" : "POST",
       body,
     ).then((ok) => {
@@ -3909,7 +3910,7 @@ function DutySlips({
         <div className="mt-3 space-y-2">
           {rows.map((row) => (
             <div
-              key={row._id}
+              key={row.slipNumber || row._id}
               className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-3"
             >
               <div>
@@ -3922,14 +3923,20 @@ function DutySlips({
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button type="button" onClick={() => setPrintRow(row)}>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setPrintRow({ ...row });
+                    setPrintAttempt((attempt) => attempt + 1);
+                  }}
+                >
                   Print / PDF
                 </Button>
                 <Button
                   type="button"
                   secondary
                   onClick={() => {
-                    setEditing(row._id);
+                    setEditing(String(row.slipNumber || row._id || ""));
                     setValue(
                       Object.fromEntries(
                         Object.keys(emptyDutySlip).map((k) => [
@@ -3955,7 +3962,7 @@ function DutySlips({
                   disabled={busy}
                   onClick={() =>
                     void remove(
-                      `/duty-slips/${row._id}`,
+                      `/duty-slips/${encodeURIComponent(String(row.slipNumber || row._id || ""))}`,
                       `duty slip ${row.slipNumber}`,
                     )
                   }

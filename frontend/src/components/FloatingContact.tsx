@@ -22,7 +22,6 @@ export default function FloatingContact() {
     phone: site.phone,
     whatsapp: site.whatsapp,
   });
-  const [enquiryVisible, setEnquiryVisible] = useState(false);
   useEffect(() => {
     let active = true;
     fetch(`${getApiUrl()}/api/public/settings`)
@@ -39,21 +38,11 @@ export default function FloatingContact() {
       active = false;
     };
   }, []);
-  useEffect(() => {
-    const card = document.querySelector("#book .enquiry-card");
-    if (!card) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setEnquiryVisible(entry.isIntersecting),
-      { threshold: 0.06 },
-    );
-    observer.observe(card);
-    return () => observer.disconnect();
-  }, []);
-  if (enquiryVisible) return null;
+  if (!contact.whatsapp && !contact.phone) return null;
   return (
     <nav
       aria-label="Contact Vistar Cabs"
-      className="fixed inset-x-3 bottom-3 z-40 flex items-end justify-between pb-[env(safe-area-inset-bottom)] sm:inset-x-5 sm:bottom-5"
+      className="floating-contact-nav flex items-end justify-between"
     >
       {contact.whatsapp ? (
         <a

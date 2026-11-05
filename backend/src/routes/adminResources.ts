@@ -1160,13 +1160,22 @@ router.post("/duty-slips", requireOwner, async (req, res, next) => {
 });
 router.put("/duty-slips/:id", requireOwner, async (req, res, next) => {
   try {
-    if (!idOr404(req.params.id, res)) return;
     const parsed = dutySlipSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ ok: false, message: "Check the duty slip fields.", errors: parsed.error.flatten().fieldErrors });
       return;
     }
-    const row = await DutySlip.findByIdAndUpdate(req.params.id, parsed.data, { new: true, runValidators: true });
+    // Older slips may have been created before the current admin UI was added.
+    // Accept the stable slip number as well as a Mongo ObjectId so those rows
+    // remain editable even if their serialized _id differs from newer rows.
+    const identifier = req.params.id;
+    const filter = mongoose.isValidObjectId(identifier)
+      ? { _id: identifier }
+      : { slipNumber: identifier };
+    const row = await DutySlip.findOneAndUpdate(filter, parsed.data, {
+      new: true,
+      runValidators: true,
+    });
     if (!row) {
       res.status(404).json({ ok: false, message: "Duty slip not found." });
       return;
@@ -1180,8 +1189,11 @@ router.put("/duty-slips/:id", requireOwner, async (req, res, next) => {
 
 router.delete("/duty-slips/:id", requireOwner, async (req, res, next) => {
   try {
-    if (!idOr404(req.params.id, res)) return;
-    const row = await DutySlip.findByIdAndDelete(req.params.id);
+    const identifier = req.params.id;
+    const filter = mongoose.isValidObjectId(identifier)
+      ? { _id: identifier }
+      : { slipNumber: identifier };
+    const row = await DutySlip.findOneAndDelete(filter);
     if (!row) {
       res.status(404).json({ ok: false, message: "Duty slip not found." });
       return;
