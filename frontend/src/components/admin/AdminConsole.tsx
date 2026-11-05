@@ -3952,22 +3952,18 @@ function DutySlips({
 }
 
 function DutySlipPrint({ row }: { row: Row }) {
-  const amount = (value: unknown) =>
-    "₹ " + Number(value || 0).toLocaleString("en-IN");
   const blank = (value: unknown) =>
     String(value ?? "").trim() || "________________";
-  const day = new Date(row.dutyDate + "T00:00:00");
-  const dutyDate = Number.isNaN(day.getTime())
-    ? row.dutyDate
-    : day.toLocaleDateString("en-IN", {
+  const amount = (value: unknown) =>
+    "₹ " + Number(value || 0).toLocaleString("en-IN");
+  const tripDate = new Date(`${row.dutyDate}T00:00:00`);
+  const dateLabel = Number.isNaN(tripDate.getTime())
+    ? blank(row.dutyDate)
+    : tripDate.toLocaleDateString("en-IN", {
         day: "2-digit",
         month: "short",
         year: "numeric",
       });
-  const total =
-    Number(row.tripAmount || 0) +
-    Number(row.tollAmount || 0) +
-    Number(row.parkingAmount || 0);
   const startKm = Number(row.startKm);
   const endKm = Number(row.endKm);
   const distanceKm =
@@ -3978,210 +3974,189 @@ function DutySlipPrint({ row }: { row: Row }) {
     endKm >= startKm
       ? (endKm - startKm).toLocaleString("en-IN")
       : "________________";
+  const total =
+    Number(row.tripAmount || 0) +
+    Number(row.tollAmount || 0) +
+    Number(row.parkingAmount || 0);
   const portal = (
     <div id="duty-slip-print-root">
-      <article
-        id="duty-slip-print"
-        aria-label="Vistar Cabs corporate duty slip"
-      >
+      <article id="duty-slip-print" aria-label="Vistar Cabs trip slip">
         <div className="duty-slip-watermark">VISTAR</div>
-        <header className="duty-slip-brandbar">
-          <div className="duty-slip-logo">
-            <Image
-              src="/brand/vistar-cabs-logo.png"
-              alt="Vistar Cabs"
-              width={178}
-              height={60}
-              priority
-              unoptimized
-            />
-          </div>
-          <div className="duty-slip-business">
-            <strong>VISTAR CABS</strong>
-            <span>{site.address}</span>
-            <span>Call: +91 84858 84417 · +91 87883 73586</span>
-            <span>Email: {site.email}</span>
-          </div>
+        <div className="duty-slip-topline" />
+        <header className="duty-slip-company">
+          <Image
+            src="/brand/vistar-cabs-logo.png"
+            alt="Vistar Cabs"
+            width={178}
+            height={60}
+            priority
+            unoptimized
+          />
+          <strong>VISTAR CABS</strong>
+          <span>{site.address}</span>
+          <span>
+            Phone: +91 84858 84417 · +91 87883 73586 · Email: {site.email}
+          </span>
         </header>
-        <div className="duty-slip-titlebar">
+        <div className="duty-slip-heading">
+          <h1>TRIP SLIP</h1>
           <div>
-            <small>CORPORATE TRAVEL RECORD</small>
-            <h1>TRIP DUTY SLIP</h1>
-          </div>
-          <div className="duty-slip-ref">
-            <b>{row.slipNumber}</b>
             <span>
-              Prepared{" "}
-              {new Date(row.createdAt || Date.now()).toLocaleDateString(
-                "en-IN",
-                { day: "2-digit", month: "short", year: "numeric" },
-              )}
+              Date: <b>{dateLabel}</b>
             </span>
-            <span className="duty-slip-status">
-              {String(row.status || "prepared").toUpperCase()}
+            <span>
+              Status: <b>{String(row.status || "prepared").toUpperCase()}</b>
             </span>
           </div>
         </div>
-        <section className="duty-slip-section">
-          <h2>Company & passenger</h2>
-          <div className="duty-slip-info-grid">
-            <div>
-              <small>COMPANY</small>
-              <b>{blank(row.companyName)}</b>
-            </div>
-            <div>
-              <small>COMPANY COORDINATOR</small>
-              <b>{blank(row.coordinatorName)}</b>
-            </div>
-            <div>
-              <small>GUEST / PASSENGER</small>
-              <b>{blank(row.guestName)}</b>
-            </div>
-            <div>
-              <small>GUEST CONTACT</small>
-              <b>{blank(row.guestPhone)}</b>
-            </div>
-            <div>
-              <small>COORDINATOR CONTACT</small>
-              <b>{blank(row.coordinatorPhone)}</b>
-            </div>
-            <div>
-              <small>TRIP DATE</small>
-              <b>{blank(dutyDate)}</b>
-            </div>
+        <table className="duty-slip-table duty-slip-details">
+          <tbody>
+            <tr>
+              <th>Company Name:</th>
+              <td>{blank(row.companyName)}</td>
+              <th>Duty Slip No:</th>
+              <td>{blank(row.slipNumber)}</td>
+            </tr>
+            <tr>
+              <th>Guest Name:</th>
+              <td>{blank(row.guestName)}</td>
+              <th>Driver Name:</th>
+              <td>{blank(row.driverName)}</td>
+            </tr>
+            <tr>
+              <th>Guest Contact:</th>
+              <td>{blank(row.guestPhone)}</td>
+              <th>Driver Contact:</th>
+              <td>{blank(row.driverPhone)}</td>
+            </tr>
+            <tr>
+              <th>Company Coordinator:</th>
+              <td>{blank(row.coordinatorName)}</td>
+              <th>Coordinator Contact:</th>
+              <td>{blank(row.coordinatorPhone)}</td>
+            </tr>
+            <tr>
+              <th>Pickup Time:</th>
+              <td>{blank(row.pickupTime)}</td>
+              <th>Vehicle No:</th>
+              <td>{blank(row.vehicleNumber)}</td>
+            </tr>
+            <tr>
+              <th>Pickup Address:</th>
+              <td>{blank(row.pickupAddress)}</td>
+              <th>Vehicle Type:</th>
+              <td>{blank(row.vehicleType)}</td>
+            </tr>
+            <tr>
+              <th>Drop Address:</th>
+              <td>{blank(row.dropAddress)}</td>
+              <th>Trip Type:</th>
+              <td>{blank(row.tripType)}</td>
+            </tr>
+            <tr>
+              <th>Travel Routing:</th>
+              <td colSpan={3} className="duty-slip-routing">
+                {blank(row.travelRouting)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <table className="duty-slip-table duty-slip-log-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>KM</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Place</th>
+              <th>Expense</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Garage Out:</th>
+              <td>{blank("")}</td>
+              <td>{blank("")}</td>
+              <td>{blank("")}</td>
+              <td>{blank("")}</td>
+              <th>Trip Amount:</th>
+              <td>{amount(row.tripAmount)}</td>
+            </tr>
+            <tr>
+              <th>Pickup:</th>
+              <td>{blank(row.startKm)}</td>
+              <td>{dateLabel}</td>
+              <td>{blank(row.pickupTime)}</td>
+              <td>{blank(row.pickupAddress)}</td>
+              <th>Tolls:</th>
+              <td>{amount(row.tollAmount)}</td>
+            </tr>
+            <tr>
+              <th>Drop:</th>
+              <td>{blank(row.endKm)}</td>
+              <td>{dateLabel}</td>
+              <td>{blank(row.actualEndTime)}</td>
+              <td>{blank(row.dropAddress)}</td>
+              <th>Parking:</th>
+              <td>{amount(row.parkingAmount)}</td>
+            </tr>
+            <tr>
+              <th>Garage In:</th>
+              <td>{blank("")}</td>
+              <td>{blank("")}</td>
+              <td>{blank("")}</td>
+              <td>{blank("")}</td>
+              <th>Total:</th>
+              <td>{amount(total)}</td>
+            </tr>
+            <tr className="duty-slip-totals-row">
+              <th>Total KM:</th>
+              <td>{distanceKm}</td>
+              <th colSpan={2}>Extra KM:</th>
+              <td>{blank("")}</td>
+              <th>Extra Hours:</th>
+              <td>{blank("")}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div className="duty-slip-remarks-grid">
+          <div>
+            <b>Remark:</b>
+            <p>{blank(row.paymentTerms)}</p>
           </div>
-        </section>
-        <section className="duty-slip-section">
-          <h2>Journey & assigned vehicle</h2>
-          <div className="duty-slip-info-grid">
-            <div>
-              <small>PICKUP TIME</small>
-              <b>{blank(row.pickupTime)}</b>
-            </div>
-            <div>
-              <small>TRIP TYPE</small>
-              <b>{blank(row.tripType)}</b>
-            </div>
-            <div className="wide">
-              <small>PICKUP ADDRESS</small>
-              <b>{blank(row.pickupAddress)}</b>
-            </div>
-            <div className="wide">
-              <small>DROP ADDRESS</small>
-              <b>{blank(row.dropAddress)}</b>
-            </div>
-            <div className="wide">
-              <small>TRAVEL ROUTING / ITINERARY</small>
-              <b>{blank(row.travelRouting)}</b>
-            </div>
-            <div>
-              <small>DRIVER</small>
-              <b>
-                {blank(row.driverName)} · {blank(row.driverPhone)}
-              </b>
-            </div>
-            <div>
-              <small>VEHICLE</small>
-              <b>
-                {blank(row.vehicleType)} · {blank(row.vehicleNumber)}
-              </b>
-            </div>
+          <div>
+            <strong>YOUR FEEDBACK / SUGGESTION</strong>
+            <p>
+              {String(row.tripRemarks ?? "").trim() ||
+                "Please share any feedback or suggestion about this trip."}
+            </p>
+            {!String(row.tripRemarks ?? "").trim() && (
+              <div className="duty-slip-writing-lines" aria-hidden="true" />
+            )}
           </div>
-        </section>
-        <section className="duty-slip-section">
-          <h2>
-            Journey completion <span>Driver to complete after the trip</span>
-          </h2>
-          <div className="duty-slip-log">
-            <div>
-              <small>START KM</small>
-              <b>{blank(row.startKm)}</b>
-            </div>
-            <div>
-              <small>START TIME</small>
-              <b>{blank(row.actualStartTime)}</b>
-            </div>
-            <div>
-              <small>END KM</small>
-              <b>{blank(row.endKm)}</b>
-            </div>
-            <div>
-              <small>END TIME</small>
-              <b>{blank(row.actualEndTime)}</b>
-            </div>
-            <div>
-              <small>TOTAL KM</small>
-              <b>{distanceKm}</b>
-            </div>
-            <div>
-              <small>TOTAL TIME / DAYS</small>
-              <b>________________</b>
-            </div>
+        </div>
+        <div className="duty-slip-signatures">
+          <div>
+            <span></span>
+            <b>VISTAR CABS / DRIVER SIGNATURE</b>
+            <small>Name and date</small>
           </div>
-        </section>
-        <section className="duty-slip-section">
-          <h2>Charges for company review</h2>
-          <div className="duty-slip-charges">
-            <div>
-              <span>Trip amount</span>
-              <b>{amount(row.tripAmount)}</b>
-            </div>
-            <div>
-              <span>Tolls</span>
-              <b>{amount(row.tollAmount)}</b>
-            </div>
-            <div>
-              <span>Parking</span>
-              <b>{amount(row.parkingAmount)}</b>
-            </div>
-            <div className="total">
-              <span>Total for company review</span>
-              <b>{amount(total)}</b>
-            </div>
-          </div>
-          <p className="duty-slip-terms">
-            <b>Payment terms / notes:</b> {blank(row.paymentTerms)}
-          </p>
-        </section>
-        <section className="duty-slip-section duty-slip-feedback">
-          <h2>Trip remarks / guest feedback</h2>
-          <p>
-            {String(row.tripRemarks ?? "").trim() ||
-              "Record any service feedback, incident or company note after the trip."}
-          </p>
-          {!String(row.tripRemarks ?? "").trim() && <div aria-hidden="true" />}
-        </section>
-        <div className="duty-slip-approval">
-          <p>
-            The driver confirms the recorded journey and expense details. The
-            company representative acknowledges receipt for review.
-          </p>
-          <div className="duty-slip-sign-row">
-            <div>
-              <span></span>
-              <b>Driver signature</b>
-              <small>Name & date</small>
-            </div>
-            <div>
-              <span></span>
-              <b>Company authorized signatory</b>
-              <small>Signature, stamp & date</small>
-            </div>
+          <div>
+            <span></span>
+            <b>CUSTOMER / COMPANY SIGNATURE</b>
+            <small>Authorized signature and company stamp</small>
           </div>
         </div>
         <footer className="duty-slip-footer">
           <b>VISTAR CABS</b>
-          <span>
-            Trip record for company review · Payment subject to agreed company
-            terms
-          </span>
+          <span>+91 84858 84417 · +91 87883 73586 · {site.email}</span>
         </footer>
       </article>
     </div>
   );
   return createPortal(portal, document.body);
 }
-
 function Drivers({
   rows,
   search,
