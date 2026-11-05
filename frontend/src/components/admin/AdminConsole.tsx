@@ -1,7 +1,8 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   Check,
@@ -31,6 +32,7 @@ import {
   airports,
   routes,
   destinationGuides,
+  site,
 } from "@/lib/site";
 import { mediaUrl } from "@/lib/cms";
 
@@ -44,6 +46,7 @@ type Section =
   | "reviews"
   | "media"
   | "customers"
+  | "dutySlips"
   | "drivers"
   | "vehicles"
   | "settings"
@@ -195,6 +198,7 @@ const items: Record<Section, { label: string; icon: any; owner?: boolean }> = {
   reviews: { label: "Customer feedback", icon: MessageSquareQuote },
   media: { label: "Photo library", icon: ImagePlus },
   customers: { label: "Customers", icon: Users, owner: true },
+  dutySlips: { label: "Corporate duty slips", icon: FileText, owner: true },
   vehicles: { label: "Vehicles", icon: CarFront, owner: true },
   drivers: { label: "Drivers", icon: UserRound, owner: true },
   settings: { label: "Site settings", icon: Settings },
@@ -545,12 +549,15 @@ export default function AdminConsole() {
           target === "campaigns" ||
           target === "reviews" ||
           target === "customers" ||
+          target === "dutySlips" ||
           target === "drivers" ||
           target === "vehicles" ||
           target === "audit" ||
           target === "media"
         ) {
-          const body = await request(`/${target}`);
+          const body = await request(
+            target === "dutySlips" ? "/duty-slips" : `/${target}`,
+          );
           setRows(body.items || []);
           if (target === "media") setMediaAssets(body.items || []);
           if (target === "vehicles" || target === "campaigns") {
@@ -943,6 +950,13 @@ export default function AdminConsole() {
               setValue={setCustomer}
               busy={busy}
               save={save}
+            />
+          )}
+          {section === "dutySlips" && (
+            <DutySlips
+              rows={rows}
+              save={save}
+              refresh={() => load("dutySlips")}
             />
           )}
           {section === "drivers" && (
@@ -3211,7 +3225,11 @@ function Seo({
         <div className="mt-3 space-y-2">
           {rows.map((row) => (
             <div
-              key={row._id}
+              key={
+                row._id ||
+                row.phone ||
+                `${row.name}-${row.lastInquiryAt || "profile"}`
+              }
               className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"
             >
               <div>
@@ -3694,6 +3712,474 @@ function Customers({
       </Card>
     </>
   );
+}
+
+const emptyDutySlip = {
+  companyName: "",
+  guestName: "",
+  guestPhone: "",
+  coordinatorName: "",
+  coordinatorPhone: "",
+  dutyDate: "",
+  pickupTime: "",
+  pickupAddress: "",
+  dropAddress: "",
+  travelRouting: "",
+  tripType: "Corporate",
+  driverName: "",
+  driverPhone: "",
+  vehicleNumber: "",
+  vehicleType: "",
+  startKm: "",
+  endKm: "",
+  actualStartTime: "",
+  actualEndTime: "",
+  tollAmount: "0",
+  parkingAmount: "0",
+  tripAmount: "0",
+  paymentTerms: "Company-billed corporate trip",
+  tripRemarks: "",
+  status: "prepared",
+};
+function DutySlips({
+  rows,
+  save,
+  refresh,
+}: {
+  rows: Row[];
+  save: (path: string, method?: string, body?: unknown) => Promise<boolean>;
+  refresh: () => void;
+}) {
+  const [value, setValue] = useState({ ...emptyDutySlip });
+  const [editing, setEditing] = useState("");
+  const [printRow, setPrintRow] = useState<Row | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (!printRow) return;
+    const timer = window.setTimeout(() => window.print(), 200);
+    const finish = () => setPrintRow(null);
+    window.addEventListener("afterprint", finish, { once: true });
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("afterprint", finish);
+    };
+  }, [printRow]);
+  const set = (key: string, next: string) =>
+    setValue((old) => ({ ...old, [key]: next }));
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const body = {
+      ...value,
+      tollAmount: Number(value.tollAmount || 0),
+      parkingAmount: Number(value.parkingAmount || 0),
+      tripAmount: Number(value.tripAmount || 0),
+    };
+    void save(
+      editing ? `/duty-slips/${editing}` : "/duty-slips",
+      editing ? "PUT" : "POST",
+      body,
+    ).then((ok) => {
+      if (ok) {
+        setValue({ ...emptyDutySlip });
+        setEditing("");
+        refresh();
+      }
+    });
+  };
+  const fields: Array<[string, string, string?]> = [
+    ["companyName", "Company name"],
+    ["guestName", "Guest / passenger name"],
+    ["guestPhone", "Guest phone", "tel"],
+    ["coordinatorName", "Company coordinator"],
+    ["coordinatorPhone", "Coordinator phone", "tel"],
+    ["dutyDate", "Trip date", "date"],
+    ["pickupTime", "Pickup time", "time"],
+    ["pickupAddress", "Pickup address"],
+    ["dropAddress", "Drop address"],
+    ["driverName", "Assigned driver"],
+    ["driverPhone", "Driver phone", "tel"],
+    ["vehicleType", "Vehicle type"],
+    ["vehicleNumber", "Vehicle number"],
+    ["startKm", "Start KM"],
+    ["endKm", "End KM"],
+    ["actualStartTime", "Actual start time", "time"],
+    ["actualEndTime", "Actual end time", "time"],
+    ["tripAmount", "Trip amount (INR)", "number"],
+    ["tollAmount", "Tolls (INR)", "number"],
+    ["parkingAmount", "Parking (INR)", "number"],
+  ];
+  return (
+    <>
+      <Card>
+        <h2 className="text-lg font-black">Corporate trip duty slip</h2>
+        <p className="mt-1 text-xs leading-5 text-slate-500">
+          Create a company trip record before travel, print it for the driver,
+          then update actual readings and charges for company review. The slip
+          is stored in MongoDB.
+        </p>
+        <form
+          ref={formRef}
+          onSubmit={submit}
+          className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+        >
+          {fields.map(([key, label, type]) => (
+            <Field
+              key={key}
+              label={label}
+              type={type}
+              value={value[key as keyof typeof value]}
+              onChange={(v) => set(key, v)}
+              required={[
+                "companyName",
+                "guestName",
+                "guestPhone",
+                "dutyDate",
+                "pickupTime",
+                "pickupAddress",
+                "dropAddress",
+              ].includes(key)}
+            />
+          ))}
+          <TextField
+            label="Travel routing / itinerary"
+            value={value.travelRouting}
+            onChange={(v) => set("travelRouting", v)}
+            rows={2}
+          />
+          <TextField
+            label="Payment terms / company notes"
+            value={value.paymentTerms}
+            onChange={(v) => set("paymentTerms", v)}
+            rows={2}
+          />
+          <TextField
+            label="Trip remarks / guest feedback (optional)"
+            value={value.tripRemarks}
+            onChange={(v) => set("tripRemarks", v)}
+            rows={2}
+          />
+          <label className={labelClass}>
+            Slip status
+            <select
+              className={inputClass}
+              value={value.status}
+              onChange={(e) => set("status", e.target.value)}
+            >
+              {[
+                "prepared",
+                "completed",
+                "submitted",
+                "approved",
+                "cancelled",
+              ].map((status) => (
+                <option key={status}>{status}</option>
+              ))}
+            </select>
+          </label>
+          <div className="flex items-end gap-2">
+            <Button type="submit">
+              {editing ? "Save trip updates" : "Create duty slip"}
+            </Button>
+            {editing && (
+              <Button
+                type="button"
+                secondary
+                onClick={() => {
+                  setEditing("");
+                  setValue({ ...emptyDutySlip });
+                }}
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
+        </form>
+      </Card>
+      {printRow && <DutySlipPrint row={printRow} />}
+      <Card className="mt-4 print:hidden">
+        <h2 className="text-lg font-black">Saved corporate duty slips</h2>
+        <div className="mt-3 space-y-2">
+          {rows.map((row) => (
+            <div
+              key={row._id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-3"
+            >
+              <div>
+                <p className="font-bold">
+                  {row.slipNumber} · {row.companyName}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">
+                  {row.guestName} · {row.dutyDate} · {row.pickupAddress} →{" "}
+                  {row.dropAddress} · {row.status}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button type="button" onClick={() => setPrintRow(row)}>
+                  Print / PDF
+                </Button>
+                <Button
+                  type="button"
+                  secondary
+                  onClick={() => {
+                    setEditing(row._id);
+                    setValue(
+                      Object.fromEntries(
+                        Object.keys(emptyDutySlip).map((k) => [
+                          k,
+                          String(
+                            row[k] ??
+                              emptyDutySlip[k as keyof typeof emptyDutySlip],
+                          ),
+                        ]),
+                      ) as typeof emptyDutySlip,
+                    );
+                    formRef.current?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    });
+                  }}
+                >
+                  Complete / edit
+                </Button>
+              </div>
+            </div>
+          ))}
+          {!rows.length && <Empty message="No corporate duty slips yet." />}
+        </div>
+      </Card>
+    </>
+  );
+}
+
+function DutySlipPrint({ row }: { row: Row }) {
+  const amount = (value: unknown) =>
+    "₹ " + Number(value || 0).toLocaleString("en-IN");
+  const blank = (value: unknown) =>
+    String(value ?? "").trim() || "________________";
+  const day = new Date(row.dutyDate + "T00:00:00");
+  const dutyDate = Number.isNaN(day.getTime())
+    ? row.dutyDate
+    : day.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+  const total =
+    Number(row.tripAmount || 0) +
+    Number(row.tollAmount || 0) +
+    Number(row.parkingAmount || 0);
+  const startKm = Number(row.startKm);
+  const endKm = Number(row.endKm);
+  const distanceKm =
+    String(row.startKm ?? "").trim() &&
+    String(row.endKm ?? "").trim() &&
+    Number.isFinite(startKm) &&
+    Number.isFinite(endKm) &&
+    endKm >= startKm
+      ? (endKm - startKm).toLocaleString("en-IN")
+      : "________________";
+  const portal = (
+    <div id="duty-slip-print-root">
+      <article
+        id="duty-slip-print"
+        aria-label="Vistar Cabs corporate duty slip"
+      >
+        <div className="duty-slip-watermark">VISTAR</div>
+        <header className="duty-slip-brandbar">
+          <div className="duty-slip-logo">
+            <Image
+              src="/brand/vistar-cabs-logo.png"
+              alt="Vistar Cabs"
+              width={178}
+              height={60}
+              priority
+              unoptimized
+            />
+          </div>
+          <div className="duty-slip-business">
+            <strong>VISTAR CABS</strong>
+            <span>{site.address}</span>
+            <span>Call: +91 84858 84417 · +91 87883 73586</span>
+            <span>Email: {site.email}</span>
+          </div>
+        </header>
+        <div className="duty-slip-titlebar">
+          <div>
+            <small>CORPORATE TRAVEL RECORD</small>
+            <h1>TRIP DUTY SLIP</h1>
+          </div>
+          <div className="duty-slip-ref">
+            <b>{row.slipNumber}</b>
+            <span>
+              Prepared{" "}
+              {new Date(row.createdAt || Date.now()).toLocaleDateString(
+                "en-IN",
+                { day: "2-digit", month: "short", year: "numeric" },
+              )}
+            </span>
+            <span className="duty-slip-status">
+              {String(row.status || "prepared").toUpperCase()}
+            </span>
+          </div>
+        </div>
+        <section className="duty-slip-section">
+          <h2>Company & passenger</h2>
+          <div className="duty-slip-info-grid">
+            <div>
+              <small>COMPANY</small>
+              <b>{blank(row.companyName)}</b>
+            </div>
+            <div>
+              <small>COMPANY COORDINATOR</small>
+              <b>{blank(row.coordinatorName)}</b>
+            </div>
+            <div>
+              <small>GUEST / PASSENGER</small>
+              <b>{blank(row.guestName)}</b>
+            </div>
+            <div>
+              <small>GUEST CONTACT</small>
+              <b>{blank(row.guestPhone)}</b>
+            </div>
+            <div>
+              <small>COORDINATOR CONTACT</small>
+              <b>{blank(row.coordinatorPhone)}</b>
+            </div>
+            <div>
+              <small>TRIP DATE</small>
+              <b>{blank(dutyDate)}</b>
+            </div>
+          </div>
+        </section>
+        <section className="duty-slip-section">
+          <h2>Journey & assigned vehicle</h2>
+          <div className="duty-slip-info-grid">
+            <div>
+              <small>PICKUP TIME</small>
+              <b>{blank(row.pickupTime)}</b>
+            </div>
+            <div>
+              <small>TRIP TYPE</small>
+              <b>{blank(row.tripType)}</b>
+            </div>
+            <div className="wide">
+              <small>PICKUP ADDRESS</small>
+              <b>{blank(row.pickupAddress)}</b>
+            </div>
+            <div className="wide">
+              <small>DROP ADDRESS</small>
+              <b>{blank(row.dropAddress)}</b>
+            </div>
+            <div className="wide">
+              <small>TRAVEL ROUTING / ITINERARY</small>
+              <b>{blank(row.travelRouting)}</b>
+            </div>
+            <div>
+              <small>DRIVER</small>
+              <b>
+                {blank(row.driverName)} · {blank(row.driverPhone)}
+              </b>
+            </div>
+            <div>
+              <small>VEHICLE</small>
+              <b>
+                {blank(row.vehicleType)} · {blank(row.vehicleNumber)}
+              </b>
+            </div>
+          </div>
+        </section>
+        <section className="duty-slip-section">
+          <h2>
+            Journey completion <span>Driver to complete after the trip</span>
+          </h2>
+          <div className="duty-slip-log">
+            <div>
+              <small>START KM</small>
+              <b>{blank(row.startKm)}</b>
+            </div>
+            <div>
+              <small>START TIME</small>
+              <b>{blank(row.actualStartTime)}</b>
+            </div>
+            <div>
+              <small>END KM</small>
+              <b>{blank(row.endKm)}</b>
+            </div>
+            <div>
+              <small>END TIME</small>
+              <b>{blank(row.actualEndTime)}</b>
+            </div>
+            <div>
+              <small>TOTAL KM</small>
+              <b>{distanceKm}</b>
+            </div>
+            <div>
+              <small>TOTAL TIME / DAYS</small>
+              <b>________________</b>
+            </div>
+          </div>
+        </section>
+        <section className="duty-slip-section">
+          <h2>Charges for company review</h2>
+          <div className="duty-slip-charges">
+            <div>
+              <span>Trip amount</span>
+              <b>{amount(row.tripAmount)}</b>
+            </div>
+            <div>
+              <span>Tolls</span>
+              <b>{amount(row.tollAmount)}</b>
+            </div>
+            <div>
+              <span>Parking</span>
+              <b>{amount(row.parkingAmount)}</b>
+            </div>
+            <div className="total">
+              <span>Total for company review</span>
+              <b>{amount(total)}</b>
+            </div>
+          </div>
+          <p className="duty-slip-terms">
+            <b>Payment terms / notes:</b> {blank(row.paymentTerms)}
+          </p>
+        </section>
+        <section className="duty-slip-section duty-slip-feedback">
+          <h2>Trip remarks / guest feedback</h2>
+          <p>
+            {String(row.tripRemarks ?? "").trim() ||
+              "Record any service feedback, incident or company note after the trip."}
+          </p>
+          {!String(row.tripRemarks ?? "").trim() && <div aria-hidden="true" />}
+        </section>
+        <div className="duty-slip-approval">
+          <p>
+            The driver confirms the recorded journey and expense details. The
+            company representative acknowledges receipt for review.
+          </p>
+          <div className="duty-slip-sign-row">
+            <div>
+              <span></span>
+              <b>Driver signature</b>
+              <small>Name & date</small>
+            </div>
+            <div>
+              <span></span>
+              <b>Company authorized signatory</b>
+              <small>Signature, stamp & date</small>
+            </div>
+          </div>
+        </div>
+        <footer className="duty-slip-footer">
+          <b>VISTAR CABS</b>
+          <span>
+            Trip record for company review · Payment subject to agreed company
+            terms
+          </span>
+        </footer>
+      </article>
+    </div>
+  );
+  return createPortal(portal, document.body);
 }
 
 function Drivers({

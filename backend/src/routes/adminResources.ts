@@ -15,6 +15,7 @@ import AuditEvent from "../models/AuditEvent";
 import PageContentOverride from "../models/PageContentOverride";
 import SiteCampaign from "../models/SiteCampaign";
 import PageRevision from "../models/PageRevision";
+import DutySlip from "../models/DutySlip";
 import { authenticatedRole, requireAdmin, requireOwner } from "./admin";
 
 const router = Router();
@@ -119,6 +120,33 @@ const customerSchema = z
     marketingConsent: z.boolean().default(false),
   })
   .strict();
+const dutySlipSchema = z.object({
+  companyName: z.string().trim().min(2).max(160),
+  guestName: z.string().trim().min(2).max(100),
+  guestPhone: phone,
+  coordinatorName: z.string().trim().max(100).default(""),
+  coordinatorPhone: z.string().trim().max(24).default(""),
+  dutyDate: z.string().trim().min(8).max(10),
+  pickupTime: z.string().trim().min(3).max(10),
+  pickupAddress: z.string().trim().min(3).max(300),
+  dropAddress: z.string().trim().min(3).max(300),
+  travelRouting: z.string().trim().max(1000).default(""),
+  tripType: z.string().trim().max(60).default("Corporate"),
+  driverName: z.string().trim().max(100).default(""),
+  driverPhone: z.string().trim().max(24).default(""),
+  vehicleNumber: z.string().trim().max(24).default(""),
+  vehicleType: z.string().trim().max(80).default(""),
+  startKm: z.string().trim().max(20).default(""),
+  endKm: z.string().trim().max(20).default(""),
+  actualStartTime: z.string().trim().max(10).default(""),
+  actualEndTime: z.string().trim().max(10).default(""),
+  tollAmount: z.number().min(0).max(1000000).default(0),
+  parkingAmount: z.number().min(0).max(1000000).default(0),
+  tripAmount: z.number().min(0).max(10000000).default(0),
+  paymentTerms: z.string().trim().max(500).default(""),
+  tripRemarks: z.string().trim().max(1000).default(""),
+  status: z.enum(["prepared", "completed", "submitted", "approved", "cancelled"]).default("prepared"),
+}).strict();
 const driverSchema = z
   .object({
     name: z.string().trim().min(2).max(100),
@@ -1098,6 +1126,54 @@ router.put("/customers/:id", requireOwner, async (req, res, next) => {
     res.json({ ok: true, item: row });
   } catch (error) {
     if (duplicateSafe(error, res)) return;
+    next(error);
+  }
+});
+
+router.get("/duty-slips", requireOwner, async (_req, res, next) => {
+  try {
+    const items = await DutySlip.find().sort({ createdAt: -1 }).limit(500).lean();
+    res.json({ ok: true, items });
+  } catch (error) {
+    next(error);
+  }
+});
+router.post("/duty-slips", requireOwner, async (req, res, next) => {
+  try {
+    const parsed = dutySlipSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        ok: false,
+        message: "Check the corporate trip fields.",
+        errors: parsed.error.flatten().fieldErrors,
+      });
+      return;
+    }
+    const dateCode = new Date().toISOString().slice(0, 10).replaceAll("-", "");
+    const slipNumber = `VC-${dateCode}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    const row = await DutySlip.create({ ...parsed.data, slipNumber });
+    audit(req, "create", "duty-slip", String(row.id), slipNumber);
+    res.status(201).json({ ok: true, item: row });
+  } catch (error) {
+    next(error);
+  }
+});
+router.put("/duty-slips/:id", requireOwner, async (req, res, next) => {
+  try {
+    if (!idOr404(req.params.id, res)) return;
+    const parsed = dutySlipSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ ok: false, message: "Check the duty slip fields.", errors: parsed.error.flatten().fieldErrors });
+      return;
+    }
+    const row = await DutySlip.findByIdAndUpdate(req.params.id, parsed.data, { new: true, runValidators: true });
+    if (!row) {
+      res.status(404).json({ ok: false, message: "Duty slip not found." });
+      return;
+    }
+    audit(req, "update", "duty-slip", String(row.id), row.slipNumber);
+    res.json({ ok: true, item: row });
+  } catch (error) {
     next(error);
   }
 });

@@ -42,9 +42,9 @@ export default async function SiteFooter() {
   ];
 
   return (
-    <footer id="contact" className="bg-[#071a2f] py-12 text-white sm:py-14">
+    <footer id="contact" className="bg-[#071a2f] py-7 text-white sm:py-12">
       <div className="container-wide">
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <h2 className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[.2em] text-slate-300">
             <span>Available in states</span>
             <span className="h-px flex-1 bg-white/15" />
@@ -67,7 +67,7 @@ export default async function SiteFooter() {
               {footerServices.length} Services
             </span>
           </h2>
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-2 hidden flex-wrap gap-2 sm:flex">
             {footerServices.map(([label, href]) => (
               <Link
                 key={label}
@@ -78,8 +78,24 @@ export default async function SiteFooter() {
               </Link>
             ))}
           </div>
+          <details className="mt-2 rounded-xl border border-white/10 px-3 py-2 sm:hidden">
+            <summary className="cursor-pointer list-none text-xs font-bold text-slate-200">
+              Browse services
+            </summary>
+            <div className="flex flex-wrap gap-2 pb-1 pt-3">
+              {footerServices.map(([label, href]) => (
+                <Link
+                  key={label}
+                  href={href}
+                  className="rounded-md border border-white/25 px-2.5 py-1 text-[11px] text-slate-100"
+                >
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </details>
         </div>
-        <div className="grid gap-9 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-9 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
             <Image
               src="/brand/vistar-cabs-logo.png"
@@ -156,76 +172,47 @@ export default async function SiteFooter() {
               )}
             </div>
           </div>
-          <div>
-            <h2 className="text-sm font-black">Company</h2>
-            <div className="mt-4 grid gap-3 text-xs text-slate-300">
-              <Link href="/about-us" className="hover:text-white">
-                About Us
-              </Link>
-              <Link href="/contact-us" className="hover:text-white">
-                Contact Us
-              </Link>
-              <Link href="/blogs" className="hover:text-white">
-                Blogs
-              </Link>
-              <Link href="/#feedback" className="hover:text-white">
-                Customer feedback
-              </Link>
-              <Link href="/#faqs" className="hover:text-white">
-                Frequently asked questions
-              </Link>
-              <Link href="/kumbh-mela-nashik" className="hover:text-white">
-                Simhastha travel guide
-              </Link>
-            </div>
-          </div>
-          <div>
-            <h2 className="text-sm font-black">Services & airports</h2>
-            <div className="mt-4 grid gap-3 text-xs text-slate-300">
-              <Link href="/outstation-cab-service" className="hover:text-white">
-                Outstation journeys
-              </Link>
-              <Link href="/airport-taxi" className="hover:text-white">
-                Airport transfers
-              </Link>
-              <Link href="/local-cab-service" className="hover:text-white">
-                Local Nashik trips
-              </Link>
-              <Link href="/corporate-cab-service" className="hover:text-white">
-                Corporate cabs
-              </Link>
-              {airports.map((airport) => (
-                <Link
-                  key={airport.slug}
-                  href={`/airports/${airport.slug}`}
-                  className="hover:text-white"
-                >
-                  {airport.city} airport · {airport.code}
-                </Link>
-              ))}
-            </div>
-          </div>
-          <div>
-            <h2 className="text-sm font-black">Cities & useful links</h2>
-            <div className="mt-4 grid gap-3 text-xs text-slate-300">
-              {cities.map((city) => (
-                <Link
-                  key={city.slug}
-                  href={`/cities/${city.slug}`}
-                  className="hover:text-white"
-                >
-                  {city.name} city guide
-                </Link>
-              ))}
-              <Link href="/maharashtra" className="hover:text-white">
-                Maharashtra travel pages
-              </Link>
-            </div>
-            <p className="mt-5 text-[10px] leading-5 text-slate-500">
-              Availability, fares and trip terms are confirmed directly with
-              Vistar Cabs.
-            </p>
-          </div>
+          <FooterLinks
+            title="Company"
+            links={[
+              ["About Us", "/about-us"],
+              ["Contact Us", "/contact-us"],
+              ["Blogs", "/blogs"],
+              ["Customer feedback", "/#feedback"],
+              ["Frequently asked questions", "/#faqs"],
+              ["Simhastha travel guide", "/kumbh-mela-nashik"],
+            ]}
+          />
+          <FooterLinks
+            title="Services & airports"
+            links={[
+              ["Outstation journeys", "/outstation-cab-service"],
+              ["Airport transfers", "/airport-taxi"],
+              ["Local Nashik trips", "/local-cab-service"],
+              ["Corporate cabs", "/corporate-cab-service"],
+              ...airports.map(
+                (airport) =>
+                  [
+                    airport.city + " airport · " + airport.code,
+                    "/airports/" + airport.slug,
+                  ] as [string, string],
+              ),
+            ]}
+          />
+          <FooterLinks
+            title="Cities & useful links"
+            links={[
+              ...cities.map(
+                (city) =>
+                  [city.name + " city guide", "/cities/" + city.slug] as [
+                    string,
+                    string,
+                  ],
+              ),
+              ["Maharashtra travel pages", "/maharashtra"],
+            ]}
+            note="Availability, fares and trip terms are confirmed directly with Vistar Cabs."
+          />
           <div className="sm:col-span-2 lg:col-span-4">
             <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/[.04] p-4 sm:grid-cols-[.8fr_1.2fr] sm:items-center">
               <div>
@@ -249,12 +236,55 @@ export default async function SiteFooter() {
             </div>
           </div>
         </div>
-        <div className="mt-9 flex flex-col justify-between gap-2 border-t border-white/10 pt-5 text-[10px] text-slate-500 sm:flex-row">
+        <div className="mt-6 flex flex-col justify-between gap-2 border-t border-white/10 pt-5 text-[10px] text-slate-500 sm:flex-row">
           <span>© {new Date().getFullYear()} Vistar Cabs</span>
           <span>Enquiry only · No online payment is collected here.</span>
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterLinks({
+  title,
+  links,
+  note,
+}: {
+  title: string;
+  links: Array<[string, string]>;
+  note?: string;
+}) {
+  return (
+    <>
+      <details className="rounded-xl border border-white/10 px-3 py-2 sm:hidden">
+        <summary className="cursor-pointer list-none text-sm font-black">
+          {title}
+        </summary>
+        <div className="grid gap-2.5 pb-2 pt-3 text-xs text-slate-300">
+          {links.map(([label, href]) => (
+            <Link key={href + label} href={href} className="hover:text-white">
+              {label}
+            </Link>
+          ))}
+          {note && (
+            <p className="pt-2 text-[10px] leading-4 text-slate-500">{note}</p>
+          )}
+        </div>
+      </details>
+      <div className="hidden sm:block">
+        <h2 className="text-sm font-black">{title}</h2>
+        <div className="mt-4 grid gap-3 text-xs text-slate-300">
+          {links.map(([label, href]) => (
+            <Link key={href + label} href={href} className="hover:text-white">
+              {label}
+            </Link>
+          ))}
+        </div>
+        {note && (
+          <p className="mt-5 text-[10px] leading-5 text-slate-500">{note}</p>
+        )}
+      </div>
+    </>
   );
 }
 

@@ -110,9 +110,11 @@ export default function Header() {
           )}
           <a
             href={waHref}
-            className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-4 py-3 text-xs font-extrabold text-slate-950 transition hover:bg-amber-300"
+            className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-3 py-2.5 text-[11px] sm:px-4 sm:py-3 sm:text-xs font-extrabold text-slate-950 transition hover:bg-amber-300"
           >
-            Quick Enquiry <ArrowUpRight size={15} />
+            <span className="sm:hidden">Enquire</span>
+            <span className="hidden sm:inline">Quick Enquiry</span>{" "}
+            <ArrowUpRight size={15} />
           </a>
           <button
             type="button"
