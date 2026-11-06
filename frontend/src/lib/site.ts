@@ -30,6 +30,14 @@ export const site = {
 
 export function getApiUrl() {
   const configured = process.env.NEXT_PUBLIC_API_URL;
+  // In production, route browser requests through the Next.js rewrite. This
+  // keeps admin session cookies first-party even when the API has another host.
+  if (
+    typeof window !== "undefined" &&
+    process.env.NODE_ENV === "production" &&
+    configured
+  )
+    return "";
   if (configured) {
     try {
       const url = new URL(configured);

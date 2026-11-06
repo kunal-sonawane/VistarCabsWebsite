@@ -183,7 +183,9 @@ router.post("/login", loginLimit, async (req, res) => {
   res.cookie(COOKIE, makeToken(role, exp, secret), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    // Required when a deployment still calls the API across site boundaries.
+    // The production frontend rewrite keeps the cookie first-party where possible.
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/api/admin",
     maxAge: SESSION_SECONDS * 1000,
   });
@@ -193,7 +195,7 @@ router.post("/logout", (req, res) => {
   res.clearCookie(COOKIE, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/api/admin",
   });
   res.json({ ok: true });

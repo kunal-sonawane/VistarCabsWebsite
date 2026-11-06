@@ -54,6 +54,7 @@ Open `http://localhost:3000`. To check on a phone connected to the same Wi-Fi, s
 - `backend/.env.example` lists API, MongoDB and admin settings. Copy it to `backend/.env` and fill in your own private values.
 - `frontend/.env.example` lists public website settings such as the website address and contact links. Copy it to `frontend/.env.local` when you need to change them.
 - Never put MongoDB credentials or admin passwords in the frontend environment.
+- For a split frontend/API deployment, set `NEXT_PUBLIC_API_URL` in the frontend build environment to the API origin (for example, `https://api.example.com`, without `/api`) and set the API's `FRONTEND_ORIGIN` to the deployed website origin. Production browser requests use the Next.js `/api` rewrite so admin session cookies stay first-party. Redeploy the frontend after changing `NEXT_PUBLIC_API_URL`.
 
 ## Useful pages
 
