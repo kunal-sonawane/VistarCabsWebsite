@@ -27,7 +27,7 @@ export default async function SiteFooter() {
   const dynamic = await getPublicSiteSettings();
   const primaryPhone = dynamic?.primaryPhone || site.phone;
   const secondaryPhone = dynamic?.secondaryPhone || site.secondaryPhone;
-  const email = dynamic?.email || site.email;
+  const email = site.email;
   const whatsapp = dynamic?.whatsappNumber || site.whatsapp;
   const socialLinks = [
     ["Instagram", dynamic?.instagramUrl || site.instagram, Instagram],

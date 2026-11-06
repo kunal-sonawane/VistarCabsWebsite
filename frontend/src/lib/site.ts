@@ -8,7 +8,7 @@ export const site = {
     /\D/g,
     "",
   ),
-  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "info@vistarcabs.com",
+  email: "infovistarcabs@gmail.com",
   address:
     "VISTAR CABS, SHOP NO. 2, DIVYA SWAPNA, OPPOSITE NIRGUDE HOSPITAL, JAIL ROAD, NASHIK ROAD, NASHIK.",
   instagram:

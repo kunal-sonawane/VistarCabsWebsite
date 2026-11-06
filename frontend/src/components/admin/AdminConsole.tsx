@@ -152,7 +152,7 @@ const emptySettings: SettingsDraft = {
   primaryPhone: "",
   secondaryPhone: "",
   whatsappNumber: "",
-  email: "",
+  email: site.email,
   instagramUrl: "",
   facebookUrl: "",
   youtubeUrl: "",
@@ -573,7 +573,7 @@ export default function AdminConsole() {
             primaryPhone: x.primaryPhone || "",
             secondaryPhone: x.secondaryPhone || "",
             whatsappNumber: x.whatsappNumber || "",
-            email: x.email || "",
+            email: site.email,
             instagramUrl: x.instagramUrl || "",
             facebookUrl: x.facebookUrl || "",
             youtubeUrl: x.youtubeUrl || "",
@@ -3545,7 +3545,7 @@ function MediaLibrary({
       </Card>
       <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {rows.map((row) => (
-          <Card key={row._id}>
+          <Card key={String(row.id || row._id)}>
             <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-slate-100">
               {row.url && (
                 <Image
@@ -3691,7 +3691,7 @@ function Customers({
         <div className="mt-3 space-y-2">
           {rows.map((row) => (
             <div
-              key={row._id}
+              key={String(row._id || row.phone)}
               className="rounded-xl border border-slate-100 p-3"
             >
               <p className="font-bold">
@@ -3765,7 +3765,17 @@ function DutySlips({
   const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (!printRow) return;
-    const timer = window.setTimeout(() => window.print(), 200);
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        const images = Array.from(
+          document.querySelectorAll<HTMLImageElement>(
+            "#duty-slip-print-root img",
+          ),
+        );
+        await Promise.all(images.map((image) => image.decode().catch(() => {})));
+        window.print();
+      })();
+    }, 200);
     const finish = () => setPrintRow(null);
     window.addEventListener("afterprint", finish, { once: true });
     return () => {
@@ -4020,11 +4030,20 @@ function DutySlipPrint({ row }: { row: Row }) {
             priority
             unoptimized
           />
-          <strong>VISTAR CABS</strong>
-          <span>{site.address}</span>
-          <span>
-            Phone: +91 84858 84417 · +91 87883 73586 · Email: {site.email}
-          </span>
+          <div className="duty-slip-company-info">
+            <strong>VISTAR CABS</strong>
+            <span>{site.address}</span>
+            <span>
+              Phone: +91 84858 84417 · +91 87883 73586 · Email:{" "}
+              <a href={`mailto:${site.email}`}>{site.email}</a>
+            </span>
+            <a
+              className="duty-slip-website"
+              href="https://www.vistarcabs.com"
+            >
+              www.VistarCabs.com
+            </a>
+          </div>
         </header>
         <div className="duty-slip-heading">
           <h1>TRIP SLIP</h1>
@@ -4179,6 +4198,7 @@ function DutySlipPrint({ row }: { row: Row }) {
         <footer className="duty-slip-footer">
           <b>VISTAR CABS</b>
           <span>+91 84858 84417 · +91 87883 73586 · {site.email}</span>
+          <a href="https://www.vistarcabs.com">www.VistarCabs.com</a>
         </footer>
       </article>
     </div>

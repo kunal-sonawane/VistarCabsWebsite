@@ -376,29 +376,49 @@ a {
   }
   .duty-slip-company {
     display: grid;
-    justify-items: center;
-    gap: 1mm;
-    text-align: center;
+    grid-template-columns: 46mm minmax(0, 1fr);
+    align-items: center;
+    gap: 4mm;
+    padding: 2mm 3mm;
+    border: 1px solid #d6e0ea;
+    border-left: 1.5mm solid #f3a11a;
+    border-radius: 2mm;
+    background: #f8fbff;
+    text-align: left;
   }
   .duty-slip-company img {
     display: block;
-    width: 39mm;
-    height: 14mm;
-    margin-bottom: 0.5mm;
+    width: 44mm;
+    height: 16mm;
     object-fit: contain;
   }
-  .duty-slip-company strong {
+  .duty-slip-company-info {
+    display: grid;
+    justify-items: start;
+    gap: 0.8mm;
+    min-width: 0;
+  }
+  .duty-slip-company-info strong {
     color: #123d70;
-    font-size: 17pt;
+    font-size: 12pt;
     font-weight: 900;
-    letter-spacing: 1pt;
     line-height: 1;
   }
-  .duty-slip-company span {
-    max-width: 175mm;
+  .duty-slip-company-info span {
+    max-width: 100%;
     color: #34485f;
-    font-size: 7.5pt;
+    font-size: 6.5pt;
     line-height: 1.25;
+  }
+  .duty-slip-company-info a,
+  .duty-slip-footer a {
+    color: #0758c9 !important;
+    font-weight: 700;
+    text-decoration: underline !important;
+    text-underline-offset: 0.5mm;
+  }
+  .duty-slip-website {
+    font-size: 7pt;
   }
   .duty-slip-heading {
     display: grid;
