@@ -516,12 +516,20 @@ export default function AdminConsole() {
               body: body instanceof ArrayBuffer ? body : JSON.stringify(body),
             }),
       });
-      const result = await response.json().catch(() => null);
+      const result: unknown = await response.json().catch(() => null);
+      const resultObject =
+        result && typeof result === "object" && !Array.isArray(result)
+          ? (result as { message?: string; [key: string]: unknown })
+          : null;
       if (!response.ok)
         throw new Error(
-          result?.message || `Request failed (${response.status}).`,
+          resultObject?.message || `Request failed (${response.status}).`,
         );
-      return result;
+      if (!resultObject)
+        throw new Error(
+          `The API returned an empty or invalid response (${response.status}). Check the backend URL and deployment.`,
+        );
+      return resultObject as Record<string, any>;
     },
     [api],
   );
