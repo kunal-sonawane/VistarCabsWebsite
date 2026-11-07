@@ -38,6 +38,12 @@ app.use(
   }),
 );
 app.use(express.json({ limit: "200kb" }));
+app.use("/api", (_req, res, next) => {
+  // API responses include session and admin data; never serve them from an edge cache.
+  res.setHeader("Cache-Control", "private, no-store, max-age=0");
+  res.setHeader("Surrogate-Control", "no-store");
+  next();
+});
 app.use(
   "/api/",
   rateLimit({

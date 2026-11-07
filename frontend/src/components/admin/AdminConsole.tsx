@@ -502,6 +502,7 @@ export default function AdminConsole() {
       const response = await fetch(`${api}${path}`, {
         method,
         credentials: "include",
+        cache: "no-store",
         headers: {
           ...(body instanceof ArrayBuffer
             ? { "Content-Type": "application/octet-stream" }
