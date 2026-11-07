@@ -63,7 +63,7 @@ export default function ReviewCarousel({
     if (!container || reviews.length < 2 || !inView) return;
     const timer = window.setInterval(() => {
       if (document.visibilityState === "visible") goTo(index + 1);
-    }, 1000);
+    }, 4000);
     return () => window.clearInterval(timer);
   }, [goTo, index, inView, reviews.length]);
 
