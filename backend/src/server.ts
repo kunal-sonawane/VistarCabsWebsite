@@ -11,6 +11,8 @@ import adminResourcesRouter from "./routes/adminResources";
 import publicRouter from "./routes/public";
 const app = express();
 const port = Number(process.env.PORT || 5000);
+// Hostinger sits behind a reverse proxy and forwards the visitor IP.
+app.set("trust proxy", 1);
 const allowedOrigin = (
   process.env.FRONTEND_ORIGIN || "http://localhost:3000,http://127.0.0.1:3000"
 )
