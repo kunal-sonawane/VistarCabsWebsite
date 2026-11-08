@@ -4,12 +4,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, MapPin } from "lucide-react";
 import Header from "@/components/Header";
+import QuickTripEnquiry from "@/components/QuickTripEnquiry";
 import SiteFooter from "@/components/SiteFooter";
 import ManagedPageContent, {
   getManagedPageReplacement,
   ManagedPageReplacement,
 } from "@/components/ManagedPageContent";
-import { places, routes, site } from "@/lib/site";
+import { places, routes } from "@/lib/site";
 import { metadataWithSeoOverride } from "@/lib/cms";
 
 type Props = { params: Promise<{ place: string }> };
@@ -111,21 +112,11 @@ export default async function NashikPlacePage({ params }: Props) {
           <p className="mt-5 max-w-2xl text-base leading-8 text-white/90">
             {item.description}
           </p>
-          <a
-            href={
-              site.whatsapp
-                ? `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(`Hello Vistar Cabs, I would like to enquire about ${item.name}.`)}`
-                : "/#book"
-            }
-            className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-full bg-amber-400 px-5 py-3 text-sm font-black text-slate-950"
-          >
-            Ask about this journey <ArrowUpRight size={16} />
-          </a>
         </div>
       </section>
 
       <section className="container-wide grid gap-8 py-10 lg:grid-cols-[1fr_330px] lg:py-14">
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-9">
+        <article className="order-2 rounded-2xl border border-slate-200 bg-white p-6 sm:p-9 lg:order-1">
           <span className="grid h-12 w-12 place-items-center rounded-xl bg-amber-50 text-amber-700">
             <MapPin size={22} />
           </span>
@@ -138,6 +129,35 @@ export default async function NashikPlacePage({ params }: Props) {
             stops, date and approximate return time. Share accessibility or
             luggage needs when relevant so arrangements can be discussed.
           </p>
+          <h2 className="mt-7 text-xl font-black">Cab planning for {item.name}</h2>
+          <div className="mt-3 space-y-4 text-base leading-8 text-slate-700">
+            <p>
+              Start by deciding whether you need a direct one-way drop, a return
+              pickup after your visit or a longer itinerary with several
+              destinations. Provide the full pickup address in Nashik and the
+              road drop point you intend to use for {item.name}. If you are
+              travelling from a hotel, railway station, airport or another
+              temple area, include that location and its scheduled arrival time
+              so the team can understand the transfer from the beginning.
+            </p>
+            <p>
+              Stops, waiting time, visit duration and the return window all
+              affect the trip plan. Add each destination in order and tell
+              Vistar Cabs about passenger count, luggage or mobility needs.
+              Before departure, check current opening hours, entry rules,
+              weather, road access and any venue-specific pickup guidance with
+              the relevant authority. The cab enquiry does not provide entry
+              tickets or confirm that a site is open on your travel date.
+            </p>
+            <p>
+              Use the enquiry form to share your date, preferred time, origin
+              and destination, then keep your mobile available for follow-up.
+              Ask the team to confirm the available vehicle, complete fare,
+              tolls, waiting or extra-stop terms before accepting. A submitted
+              request is not a confirmed booking; make final travel plans after
+              Vistar Cabs has replied with the agreed details.
+            </p>
+          </div>
           <p className="mt-5 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-950">
             Before you go: {item.tip}
           </p>
@@ -306,27 +326,12 @@ export default async function NashikPlacePage({ params }: Props) {
             All Nashik travel ideas <ArrowUpRight size={16} />
           </Link>
         </article>
-        <aside className="h-fit rounded-2xl bg-[#0758c9] p-6 text-white">
-          <p className="eyebrow text-amber-300">Vistar Cabs</p>
-          <h3 className="mt-3 text-2xl font-black">Plan it directly.</h3>
-          <p className="mt-3 text-sm leading-6 text-slate-200">
-            No online payment is required on this website. Contact the team to
-            confirm availability and trip terms.
-          </p>
-          {site.phone && (
-            <a
-              href={`tel:${site.phone}`}
-              className="mt-5 block rounded-xl bg-white px-4 py-3 text-center text-sm font-black text-slate-950"
-            >
-              Call {site.phone}
-            </a>
-          )}
-          <a
-            href={site.whatsapp ? `https://wa.me/${site.whatsapp}` : "/#book"}
-            className="mt-2 block rounded-xl bg-emerald-500 px-4 py-3 text-center text-sm font-black text-white"
-          >
-            WhatsApp enquiry
-          </a>
+        <aside className="order-1 h-fit lg:order-2">
+          <QuickTripEnquiry
+            initialFrom="Nashik"
+            initialTo={item.name}
+            title={`Enquire about ${item.name}`}
+          />
         </aside>
       </section>
       <ManagedPageContent path={pagePath} />

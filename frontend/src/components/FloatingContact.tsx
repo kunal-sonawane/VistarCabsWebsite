@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { PhoneCall } from "lucide-react";
 import { getApiUrl, site } from "@/lib/site";
 
@@ -18,11 +19,13 @@ function WhatsAppMark() {
 }
 
 export default function FloatingContact() {
+  const pathname = usePathname();
   const [contact, setContact] = useState({
     phone: site.phone,
     whatsapp: site.whatsapp,
   });
   useEffect(() => {
+    if (pathname?.startsWith("/vistar-console")) return;
     let active = true;
     fetch(`${getApiUrl()}/api/public/settings`)
       .then((r) => (r.ok ? r.json() : null))
@@ -37,8 +40,12 @@ export default function FloatingContact() {
     return () => {
       active = false;
     };
-  }, []);
-  if (!contact.whatsapp && !contact.phone) return null;
+  }, [pathname]);
+  if (
+    pathname?.startsWith("/vistar-console") ||
+    (!contact.whatsapp && !contact.phone)
+  )
+    return null;
   return (
     <nav
       aria-label="Contact Vistar Cabs"

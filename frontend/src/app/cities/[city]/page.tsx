@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Header from "@/components/Header";
+import QuickTripEnquiry from "@/components/QuickTripEnquiry";
 import SiteFooter from "@/components/SiteFooter";
 import ManagedPageContent, {
   getManagedPageReplacement,
@@ -21,9 +22,9 @@ import {
   airports,
   cities,
   cityContent,
+  cityLongForm,
   destinationGuides,
   routes,
-  site,
 } from "@/lib/site";
 import { metadataWithSeoOverride } from "@/lib/cms";
 
@@ -113,13 +114,13 @@ const cityPhoto: Record<string, { src: string; alt: string; eyebrow: string }> =
       eyebrow: "Nashik · Home city",
     },
     mumbai: {
-      src: "/images/cities/mumbai.jpg",
-      alt: "Gateway of India in Mumbai",
+      src: "/images/cities/mumbai-gateway-taj.png",
+      alt: "Gateway of India and the Taj Mahal Palace Hotel on Mumbai waterfront",
       eyebrow: "Mumbai · City and airport connections",
     },
     pune: {
-      src: "/images/cities/pune.jpg",
-      alt: "Pune city skyline",
+      src: "/images/cities/pune-shaniwar-wada.png",
+      alt: "Shaniwar Wada heritage gateway in Pune",
       eyebrow: "Pune · City and weekend journeys",
     },
     sambhajinagar: {
@@ -138,6 +139,22 @@ const cityPhoto: Record<string, { src: string; alt: string; eyebrow: string }> =
       eyebrow: "Shirdi · Pilgrimage connections",
     },
   };
+const cityPlacePhoto: Record<string, string> = {
+  "Panchavati and Ramkund": "/images/cities/nashik-ramkund-clear.jpg",
+  "Anjaneri hills": "/images/destinations/anjaneri.jpg",
+  "Igatpuri and vineyard district": "/images/sahyadri-journey.png",
+  "South Mumbai and Fort": "/images/destinations/south-mumbai-and-fort.jpg",
+  "Thane": "/images/destinations/thane.jpg",
+  "Navi Mumbai": "/images/destinations/navi-mumbai.jpg",
+  "Lonavala": "/images/destinations/lonavala.jpg",
+  "Bhimashankar": "/images/destinations/bhimashankar.jpg",
+  "Bibi Ka Maqbara": "/images/cities/sambhajinagar.jpg",
+  "Ellora Caves": "/images/destinations/ellora-caves.jpg",
+  "Ajanta Caves": "/images/destinations/ajanta-caves.jpg",
+  "Shani Shingnapur route": "/images/destinations/shani-shingnapur-route.jpg",
+  "Bhandardara": "/images/destinations/bhandardara.jpg",
+  "Shri Sai Baba Samadhi Mandir": "/images/destinations/shirdi-pilgrimage-area.jpg",
+};
 type Props = { params: Promise<{ city: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { city } = await params;
@@ -174,6 +191,7 @@ export default async function CityPage({ params }: Props) {
     );
     return {
       name: place,
+      image: cityPlacePhoto[place],
       description:
         placeDescriptions[place] ||
         `Name ${place} as a pickup, destination or planned stop when describing a ${c.name} trip.`,
@@ -197,6 +215,22 @@ export default async function CityPage({ params }: Props) {
       q: "Can I include an airport in my trip?",
       a: "Yes. Select Airport in the enquiry form and share the airport, terminal and flight details when available.",
     },
+    {
+      q: `Can I enquire about a local cab in ${c.name}?`,
+      a: `Yes. Enter the exact pickup and destination in ${c.name}. If you want to visit several places, list each stop and ask the team to confirm the requested schedule and availability.`,
+    },
+    {
+      q: `Can I ask for a one-way or return cab from ${c.name}?`,
+      a: "Yes. State whether you need a one-way drop or a return journey. For a return, provide the date and preferred time if known; confirm the final fare and waiting terms directly.",
+    },
+    {
+      q: "Can I book a cab for a sightseeing or pilgrimage itinerary?",
+      a: "You can send an enquiry with every destination in visit order, the date and expected return time. Check current opening, visitor access and local restrictions with the relevant venue.",
+    },
+    {
+      q: "Does the enquiry form confirm a cab or fare immediately?",
+      a: "No. It records your trip request and opens WhatsApp with the details prepared. Vistar Cabs must reply to confirm availability, vehicle, fare and trip terms; press Send in WhatsApp to send that message.",
+    },
   ];
   return (
     <main className="min-h-screen bg-white">
@@ -211,8 +245,8 @@ export default async function CityPage({ params }: Props) {
         />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#071a2f]/90 via-[#071a2f]/65 to-[#071a2f]/15" />
         <Header />
-        <div className="container-wide flex min-h-[470px] items-center py-28 sm:min-h-[530px]">
-          <div className="max-w-3xl">
+        <div className="container-wide grid min-h-[470px] items-center gap-8 py-28 sm:min-h-[530px] lg:grid-cols-[1.15fr_.85fr]">
+          <div className="order-2 max-w-3xl lg:order-1">
             <Link
               href="/"
               className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/10 px-3.5 py-2 text-xs font-bold text-white/80 backdrop-blur transition hover:bg-white/15"
@@ -228,16 +262,9 @@ export default async function CityPage({ params }: Props) {
             <p className="mt-4 max-w-2xl text-sm leading-7 text-white/85 sm:text-base">
               {c.intro}
             </p>
-            <a
-              href={
-                site.whatsapp
-                  ? `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(`Hello Vistar Cabs, please contact me about a cab journey in ${c.name}.`)}`
-                  : "/#book"
-              }
-              className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-amber-200"
-            >
-              Ask about a {c.name} trip <ArrowUpRight size={16} />
-            </a>
+          </div>
+          <div className="order-1 lg:order-2">
+            <QuickTripEnquiry initialFrom={c.name} title={`Plan a trip from ${c.name}`} />
           </div>
         </div>
         <div className="absolute bottom-0 inset-x-0 h-px bg-white/20" />
@@ -295,31 +322,15 @@ export default async function CityPage({ params }: Props) {
             Check current visitor access separately and confirm cab availability
             for your date.
           </p>
-          <div className="mt-7 grid gap-3 sm:grid-cols-2">
-            {places.map((place, i) => (
+          <div className="mt-7 space-y-5">
+            {places.map((place) => (
               <article
                 key={place.name}
-                className="group rounded-2xl border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg"
+                className="border-b border-slate-200 pb-4 last:border-0"
               >
-                <div className="flex items-start gap-3">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#f2f7fc] text-[10px] font-black text-blue-800">
-                    0{i + 1}
-                  </span>
-                  <div>
-                    <h3 className="text-sm font-black">{place.name}</h3>
-                    <p className="mt-1 text-xs leading-5 text-slate-600">
-                      {place.description}
-                    </p>
-                    {place.href && (
-                      <Link
-                        href={place.href}
-                        className="mt-3 inline-flex items-center gap-1 text-[11px] font-extrabold text-[#0758c9]"
-                      >
-                        View destination guide <ArrowRight size={13} />
-                      </Link>
-                    )}
-                  </div>
-                </div>
+                <h3 className="text-base font-black">{place.name}</h3>
+                <p className="mt-1 text-sm leading-7 text-slate-600">{place.description}</p>
+                {place.href && <Link href={place.href} className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-[#0758c9]">Read the destination guide <ArrowRight size={13} /></Link>}
               </article>
             ))}
           </div>
@@ -347,14 +358,25 @@ export default async function CityPage({ params }: Props) {
               ))}
             </div>
           )}
-          <Link
-            href="/#book"
-            className="mt-6 flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#0758c9] px-4 py-3 text-sm font-black text-white transition hover:bg-[#0649a6]"
-          >
-            Start an enquiry <ArrowRight size={16} />
-          </Link>
+          <p className="mt-6 rounded-xl bg-white p-4 text-xs leading-5 text-slate-600">Use the quick enquiry form at the top of this page. The team will confirm route availability and trip details directly.</p>
         </aside>
       </section>
+
+      {cityLongForm[c.slug] && (
+        <section className="container-wide py-12 sm:py-16">
+          <article className="mx-auto max-w-4xl">
+            <p className="eyebrow text-amber-700">Vistar Cabs city travel guide</p>
+            {cityLongForm[c.slug].map((part, index) => (
+              <section key={part.heading} className={index === 0 ? "mt-3" : "mt-10 border-t border-slate-200 pt-8"}>
+                <h2 className="text-2xl font-black tracking-tight sm:text-3xl">{part.heading}</h2>
+                <div className="mt-4 space-y-4 text-base leading-8 text-slate-700">
+                  {part.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                </div>
+              </section>
+            ))}
+          </article>
+        </section>
+      )}
 
       {content && (
         <section className="bg-[#f4f7fb] py-14 sm:py-18">
@@ -368,17 +390,14 @@ export default async function CityPage({ params }: Props) {
                 {content.overview}
               </p>
             </div>
-            <div className="mt-7 grid gap-3 md:grid-cols-3">
-              {content.tripIdeas.map((idea, i) => (
+            <div className="mt-7 max-w-4xl space-y-5">
+              {content.tripIdeas.map((idea) => (
                 <article
                   key={idea.title}
-                  className="rounded-2xl bg-white p-5 shadow-[0_8px_30px_rgba(7,26,47,.04)]"
+                  className="border-b border-slate-200 pb-5 last:border-0"
                 >
-                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-700">
-                    Trip idea 0{i + 1}
-                  </span>
-                  <h3 className="mt-3 text-base font-black">{idea.title}</h3>
-                  <p className="mt-2 text-xs leading-6 text-slate-600">
+                  <h3 className="text-lg font-black">{idea.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
                     {idea.copy}
                   </p>
                 </article>
@@ -388,6 +407,101 @@ export default async function CityPage({ params }: Props) {
         </section>
       )}
 
+      {content && (
+        <section className="container-wide py-14 sm:py-18">
+          <div className="max-w-3xl">
+            <p className="eyebrow text-amber-700">Cab options in {c.name}</p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+              Match the enquiry to the trip you have in mind.
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-slate-600">
+              City pickups, airport transfers and outstation routes need
+              different details. Choose the closest description below, then
+              use the quick form above to send the basic trip request.
+            </p>
+          </div>
+          <div className="mt-7 max-w-4xl space-y-5">
+            {content.services.map((service) => (
+              <article
+                key={service.title}
+                className="border-b border-slate-200 pb-5 last:border-0"
+              >
+                <h3 className="text-lg font-black">{service.title}</h3>
+                <p className="mt-2 text-sm leading-7 text-slate-600">
+                  {service.copy}
+                </p>
+              </article>
+            ))}
+          </div>
+          <div className="mt-8 grid gap-6 rounded-3xl bg-[#071a2f] p-6 text-white sm:p-8 lg:grid-cols-[.8fr_1.2fr]">
+            <div>
+              <p className="eyebrow text-amber-300">How to enquire</p>
+              <h3 className="mt-2 text-2xl font-black">
+                Four clear steps to a trip request.
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Sending the form starts a conversation. Your cab is arranged
+                only after the details are reviewed and confirmed with you.
+              </p>
+            </div>
+            <ol className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+              {[
+                `Enter where you are starting in ${c.name} and your destination.`,
+                "Choose the travel date and preferred pickup time.",
+                "Add a mobile number for the callback and send the enquiry.",
+                "Review the follow-up and confirm vehicle, fare and trip terms directly.",
+              ].map((step, index) => (
+                <li key={step} className="flex gap-3 border-b border-white/15 pb-3">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-amber-300 text-xs font-black text-slate-950">
+                    {index + 1}
+                  </span>
+                  <span className="pt-1 text-sm leading-6 text-slate-100">
+                    {step}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <p className="mt-5 rounded-2xl border-l-4 border-amber-400 bg-amber-50 p-4 text-xs leading-6 text-amber-950">
+            Vehicle suitability depends on passenger count, luggage, route and
+            availability for your date. Ask Vistar Cabs to confirm the vehicle,
+            total fare, waiting terms, tolls and any extra-stop charges before
+            accepting the trip.
+          </p>
+        </section>
+      )}
+
+      {content?.editorialSections?.map((group) => (
+        <section
+          key={group.title}
+          className="bg-white py-8 sm:py-10"
+        >
+          <div className="container-wide">
+            <div className="max-w-3xl">
+              <p className="eyebrow text-amber-700">{group.eyebrow}</p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+                {group.title}
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-slate-600">
+                {group.intro}
+              </p>
+            </div>
+            <div className="mt-7 max-w-4xl space-y-5">
+              {group.items.map((item) => (
+                <article
+                  key={item.title}
+                  className="border-b border-slate-200 pb-5 last:border-0"
+                >
+                  <h3 className="text-base font-black">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-600">
+                    {item.copy}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ))}
       {linkedAirports.length > 0 && (
         <section className="container-wide py-14 sm:py-18">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
@@ -501,4 +615,3 @@ export default async function CityPage({ params }: Props) {
     </main>
   );
 }
-

@@ -4,12 +4,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, MapPin, Route, Plane } from "lucide-react";
 import Header from "@/components/Header";
+import QuickTripEnquiry from "@/components/QuickTripEnquiry";
 import SiteFooter from "@/components/SiteFooter";
 import ManagedPageContent, {
   getManagedPageReplacement,
   ManagedPageReplacement,
 } from "@/components/ManagedPageContent";
-import { airports, cities, destinationGuides, routes, site } from "@/lib/site";
+import { airports, cities, destinationGuides, routes } from "@/lib/site";
 import { metadataWithSeoOverride } from "@/lib/cms";
 
 type Props = { params: Promise<{ city: string; place: string }> };
@@ -46,7 +47,6 @@ export default async function DestinationPage({ params }: Props) {
     .filter((r) => r.from === guide.cityName || r.to === guide.cityName)
     .slice(0, 6);
   const relatedAirports = airports.filter((a) => a.city === guide.cityName);
-  const message = `Hello Vistar Cabs, I would like to enquire about a cab journey to ${guide.name} from ${guide.cityName}.`;
   const destinationPhotos: Record<string, string> = {
     "south-mumbai-and-fort": "/images/destinations/south-mumbai-and-fort.jpg",
     thane: "/images/destinations/thane.jpg",
@@ -64,7 +64,7 @@ export default async function DestinationPage({ params }: Props) {
   };
   const cityFallback =
     guide.citySlug === "mumbai"
-      ? "/images/cities/mumbai.jpg"
+      ? "/images/cities/mumbai-gateway-taj.png"
       : guide.citySlug === "sambhajinagar"
         ? "/images/cities/sambhajinagar.jpg"
         : guide.citySlug === "ahilyanagar"
@@ -104,20 +104,10 @@ export default async function DestinationPage({ params }: Props) {
           <p className="mt-5 max-w-3xl text-base leading-8 text-white/90">
             {guide.intro}
           </p>
-          <a
-            href={
-              site.whatsapp
-                ? `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(message)}`
-                : "/#book"
-            }
-            className="mt-7 inline-flex items-center gap-2 rounded-full bg-amber-400 px-5 py-3.5 text-sm font-black text-slate-950"
-          >
-            Ask about this journey <ArrowRight size={16} />
-          </a>
         </div>
       </section>
       <section className="container-wide grid gap-8 py-10 lg:grid-cols-[1fr_320px] lg:py-14">
-        <article className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-9">
+        <article className="order-2 rounded-3xl border border-slate-200 bg-white p-6 sm:p-9 lg:order-1">
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-amber-700">
             <MapPin size={22} />
           </span>
@@ -130,6 +120,35 @@ export default async function DestinationPage({ params }: Props) {
             not promise local coverage, admission, a particular vehicle or a
             confirmed booking.
           </p>
+          <div className="mt-5 space-y-4 text-base leading-8 text-slate-700">
+            <p>
+              A useful {guide.name} cab request describes the journey from its
+              starting point to the exact entrance, parking area or meeting
+              place you intend to use. Include your full pickup address in
+              {" "}{guide.cityName}, the travel date and preferred time, and a
+              mobile number for follow-up. If a destination has more than one
+              gate or access road, identify the one that suits your visit and
+              check current access instructions with the venue.
+            </p>
+            <p>
+              Think about the whole outing before sending the request. A direct
+              drop, a return pickup after a visit and a multi-stop itinerary
+              have different timing needs. Name every stop in travel order and
+              estimate how long you expect to stay. Mention passenger count,
+              luggage or mobility needs so Vistar Cabs can discuss the vehicle
+              options available for your date. Waiting, extra stops and any
+              return arrangement should be confirmed with the team in advance.
+            </p>
+            <p>
+              Destination access, entry tickets, opening hours, trail or temple
+              rules and event-day restrictions are set by the relevant venue or
+              authority, not by the cab enquiry. Check those details before
+              choosing a pickup time. The request form prepares your trip
+              details and opens WhatsApp; press Send there if you want to
+              contact Vistar Cabs. Treat the journey as pending until the team
+              confirms availability, fare, vehicle and pickup arrangements.
+            </p>
+          </div>
           <h2 className="mt-8 text-xl font-black">Before you request a cab</h2>
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             {guide.planning.map((item) => (
@@ -175,25 +194,16 @@ export default async function DestinationPage({ params }: Props) {
             confirms vehicle availability, trip terms and fare directly.
           </p>
         </article>
-        <aside className="h-fit rounded-3xl bg-[#0758c9] p-6 text-white">
-          <p className="eyebrow text-amber-300">Vistar Cabs · enquiry only</p>
-          <h2 className="mt-3 text-2xl font-black">
-            Plan with the details in hand.
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-blue-100">
-            Tell us where to collect you, where you want to go and how the day
-            should run. The team will confirm what can be arranged.
-          </p>
-          <Link
-            href="/#book"
-            className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-3 text-sm font-black text-slate-950"
-          >
-            Open trip enquiry <ArrowRight size={16} />
-          </Link>
+        <aside className="order-1 h-fit lg:order-2">
+          <QuickTripEnquiry
+            initialFrom={guide.cityName}
+            initialTo={guide.name}
+            title={`Enquire about ${guide.name}`}
+          />
           {hub && (
             <Link
               href={`/cities/${hub.slug}`}
-              className="mt-3 block text-center text-xs font-bold text-white/80 hover:text-white"
+              className="mt-3 block text-center text-xs font-bold text-slate-600 hover:text-blue-800"
             >
               Back to {hub.name} city page
             </Link>
@@ -273,4 +283,3 @@ export default async function DestinationPage({ params }: Props) {
     </main>
   );
 }
-
