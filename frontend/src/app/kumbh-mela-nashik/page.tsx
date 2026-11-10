@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
-  ArrowUpRight,
   CalendarDays,
   MapPinned,
   Plane,
@@ -12,12 +11,12 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Header from "@/components/Header";
+import QuickTripEnquiry from "@/components/QuickTripEnquiry";
 import SiteFooter from "@/components/SiteFooter";
 import ManagedPageContent, {
   getManagedPageReplacement,
   ManagedPageReplacement,
 } from "@/components/ManagedPageContent";
-import { site } from "@/lib/site";
 import { metadataWithSeoOverride } from "@/lib/cms";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -87,8 +86,6 @@ const keyDates = [
 export default async function KumbhPage() {
   const replacement = await getManagedPageReplacement("/kumbh-mela-nashik");
   if (replacement) return <ManagedPageReplacement page={replacement} />;
-  const message =
-    "Hello Vistar Cabs, I would like to enquire about a journey for Nashik-Trimbakeshwar Simhastha Kumbh Mela 2026-2028.";
   return (
     <main className="min-h-screen bg-[#f4f7fb] text-slate-900">
       <section className="relative isolate overflow-hidden bg-[#071a2f] text-white">
@@ -103,7 +100,7 @@ export default async function KumbhPage() {
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#071a2f]/95 via-[#071a2f]/75 to-[#071a2f]/25" />
         <Header />
         <div className="container-wide grid min-h-[560px] gap-8 pb-10 pt-32 sm:pt-36 lg:grid-cols-[1.2fr_.8fr] lg:items-end lg:pb-14">
-          <div className="max-w-3xl">
+          <div className="order-2 max-w-3xl lg:order-1">
             <Link
               href="/"
               className="inline-flex items-center gap-2 text-xs font-bold text-white/75"
@@ -124,18 +121,14 @@ export default async function KumbhPage() {
               updates for the latest event schedule, access and travel
               instructions.
             </p>
-            <a
-              href={
-                site.whatsapp
-                  ? `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(message)}`
-                  : "/#book"
-              }
-              className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-slate-950 hover:bg-amber-200"
-            >
-              Plan a journey enquiry <ArrowUpRight size={16} />
-            </a>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="order-1 space-y-3 lg:order-2">
+            <QuickTripEnquiry
+              initialFrom="Nashik"
+              initialTo="Trimbakeshwar"
+              title="Plan a Simhastha journey"
+            />
+            <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur">
               <CalendarDays className="text-amber-300" size={19} />
               <p className="mt-3 text-[10px] font-black uppercase tracking-widest text-white/60">
@@ -163,6 +156,7 @@ export default async function KumbhPage() {
                 operating instructions can change; check official advisories
                 before travel.
               </p>
+            </div>
             </div>
           </div>
         </div>
@@ -415,7 +409,7 @@ export default async function KumbhPage() {
               Mumbai to Nashik route
             </Link>
             <Link
-              href="/#book"
+              href="#quick-enquiry"
               className="rounded-full bg-amber-300 px-4 py-2.5 text-xs font-black text-slate-950"
             >
               Open enquiry form
@@ -469,24 +463,12 @@ export default async function KumbhPage() {
             Vistar Cabs is a transport enquiry service; event operations are
             managed by the competent authorities.
           </p>
-          {site.phone && (
-            <a
-              href={`tel:${site.phone}`}
-              className="mt-5 block rounded-xl bg-white px-4 py-3 text-center text-sm font-black text-slate-950"
-            >
-              Call {site.phone}
-            </a>
-          )}
-          <a
-            href={
-              site.whatsapp
-                ? `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(message)}`
-                : "/#book"
-            }
-            className="mt-2 block rounded-xl bg-emerald-500 px-4 py-3 text-center text-sm font-black text-white"
+          <Link
+            href="#quick-enquiry"
+            className="mt-5 block rounded-xl bg-white px-4 py-3 text-center text-sm font-black text-slate-950"
           >
-            WhatsApp about a journey
-          </a>
+            Go to the enquiry form
+          </Link>
         </aside>
       </section>
       <ManagedPageContent path="/kumbh-mela-nashik" />

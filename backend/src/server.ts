@@ -48,9 +48,18 @@ app.use(
   "/api/",
   rateLimit({
     windowMs: 15 * 60 * 1000,
+    // Admin section changes can issue several authenticated requests at once.
+    // Those routes have their own authentication and the login route has a
+    // dedicated stricter limiter, so don't let normal admin use exhaust the
+    // shared public API quota for an IP/network.
+    skip: (req) => req.path.startsWith("/admin/") && req.path !== "/admin/login",
     limit: 100,
     standardHeaders: "draft-7",
     legacyHeaders: false,
+    message: {
+      ok: false,
+      message: "Too many public API requests from this network. Please wait a few minutes and try again.",
+    },
   }),
 );
 app.get("/api/health", (_req, res) => {

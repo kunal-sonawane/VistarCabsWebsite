@@ -131,6 +131,7 @@ export default async function Home() {
           </div>
           <div
             id="book"
+            aria-label="Quick trip enquiry"
             className="order-1 mx-auto w-full max-w-[1160px] lg:order-1 lg:mt-0"
           >
             <InquiryForm />
@@ -242,8 +243,8 @@ export default async function Home() {
               const photo =
                 {
                   nashik: "/images/cities/nashik-ramkund-clear.jpg",
-                  mumbai: "/images/cities/mumbai.jpg",
-                  pune: "/images/cities/pune.jpg",
+                  mumbai: "/images/cities/mumbai-gateway-taj.png",
+                  pune: "/images/cities/pune-shaniwar-wada.png",
                   sambhajinagar: "/images/cities/sambhajinagar.jpg",
                   ahilyanagar: "/images/cities/ahilyanagar.jpg",
                   shirdi: "/images/cities/shirdi.jpg",

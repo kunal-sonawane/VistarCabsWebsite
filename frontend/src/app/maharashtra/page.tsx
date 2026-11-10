@@ -19,8 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const cityImages: Record<string, string> = {
   nashik: "/images/cities/nashik-ramkund-clear.jpg",
-  mumbai: "/images/cities/mumbai.jpg",
-  pune: "/images/cities/pune.jpg",
+  mumbai: "/images/cities/mumbai-gateway-taj.png",
+  pune: "/images/cities/pune-shaniwar-wada.png",
   sambhajinagar: "/images/cities/sambhajinagar.jpg",
   ahilyanagar: "/images/cities/ahilyanagar.jpg",
   shirdi: "/images/cities/shirdi.jpg",
@@ -175,4 +175,3 @@ export default async function MaharashtraPage() {
     </main>
   );
 }
-

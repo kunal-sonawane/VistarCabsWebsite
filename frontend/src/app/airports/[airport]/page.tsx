@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import QuickTripEnquiry from "@/components/QuickTripEnquiry";
+import NearbyPlaces from "@/components/NearbyPlaces";
 import SiteFooter from "@/components/SiteFooter";
 import ManagedPageContent, {
   getManagedPageReplacement,
@@ -345,6 +346,14 @@ export default async function AirportPage({ params }: Props) {
             ))}
           </div>
         </section>
+      )}
+
+      {city && (
+        <NearbyPlaces
+          citySlug={city.slug}
+          cityName={city.name}
+          eyebrow={`Visitor distances around ${city.name}`}
+        />
       )}
 
       <section className="bg-[#f4f7fb] py-12 sm:py-16">

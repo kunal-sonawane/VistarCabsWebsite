@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
 import SiteFooter from "@/components/SiteFooter";
+import QuickTripEnquiry from "@/components/QuickTripEnquiry";
 import { getPublishedCmsPage, mediaUrl } from "@/lib/cms";
 
 type Props = {
@@ -171,13 +172,9 @@ export default async function CmsPage({ params }: Props) {
             the enquiry and confirm availability directly.
           </p>
 
-          <Link
-            href="/#book"
-            className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#ffad22] px-4 py-3 text-sm font-black text-slate-950"
-          >
-            Open enquiry form
-            <ArrowUpRight size={16} />
-          </Link>
+          <div className="mt-5">
+            <QuickTripEnquiry title="Ask about this journey" />
+          </div>
 
           <p className="mt-3 text-[11px] leading-5 text-slate-500">
             This page provides travel information and does not guarantee a

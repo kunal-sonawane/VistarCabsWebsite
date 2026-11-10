@@ -517,7 +517,15 @@ export default function AdminConsole() {
               body: body instanceof ArrayBuffer ? body : JSON.stringify(body),
             }),
       });
-      const result: unknown = await response.json().catch(() => null);
+      const responseText = await response.text();
+      let result: unknown = null;
+      if (responseText.trim()) {
+        try {
+          result = JSON.parse(responseText) as unknown;
+        } catch {
+          result = null;
+        }
+      }
       const resultObject =
         result && typeof result === "object" && !Array.isArray(result)
           ? (result as { message?: string; [key: string]: unknown })
@@ -526,10 +534,14 @@ export default function AdminConsole() {
         throw new Error(
           resultObject?.message || `Request failed (${response.status}).`,
         );
-      if (!resultObject)
+      if (!resultObject) {
+        const reason = responseText.trim()
+          ? "non-JSON content"
+          : "an empty body";
         throw new Error(
-          `The API returned an empty or invalid response (${response.status}). Check the backend URL and deployment.`,
+          `The admin API returned HTTP ${response.status} with ${reason} for ${path}. Check that NEXT_PUBLIC_API_URL is the API origin (for example, https://api.vistarcabs.com) and that the website /api proxy points to the current backend.`,
         );
+      }
       return resultObject as Record<string, any>;
     },
     [api],

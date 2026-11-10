@@ -444,6 +444,7 @@ export default function InquiryForm() {
 
   return (
     <form
+      id="quick-enquiry"
       onSubmit={submit}
       className="enquiry-card rounded-[22px] border border-white/70 bg-white p-3 text-slate-900 shadow-[0_24px_70px_rgba(12,32,60,.24)] sm:p-4"
     >

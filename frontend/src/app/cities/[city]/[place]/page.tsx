@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, MapPin, Route, Plane } from "lucide-react";
 import Header from "@/components/Header";
 import QuickTripEnquiry from "@/components/QuickTripEnquiry";
+import NearbyPlaces from "@/components/NearbyPlaces";
 import SiteFooter from "@/components/SiteFooter";
 import ManagedPageContent, {
   getManagedPageReplacement,
@@ -210,6 +211,13 @@ export default async function DestinationPage({ params }: Props) {
           )}
         </aside>
       </section>
+      {hub && (
+        <NearbyPlaces
+          citySlug={hub.slug}
+          cityName={hub.name}
+          eyebrow={`More places around ${hub.name}`}
+        />
+      )}
       {relatedRoutes.length > 0 && (
         <section className="container-wide pb-12">
           <p className="eyebrow text-amber-700">Intercity connections</p>

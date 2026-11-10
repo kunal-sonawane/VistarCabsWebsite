@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import Header from "@/components/Header";
 import SiteFooter from "@/components/SiteFooter";
+import QuickTripEnquiry from "@/components/QuickTripEnquiry";
 import { site } from "@/lib/site";
 import { metadataWithSeoOverride } from "@/lib/cms";
 
@@ -125,12 +125,9 @@ export default async function ContactPage() {
             Please contact the team before visiting to confirm availability and
             the best time to reach the office.
           </p>
-          <Link
-            href="/#book"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#0758c9] px-5 py-3 text-sm font-black text-white"
-          >
-            Send a cab enquiry <ArrowRight size={15} />
-          </Link>
+          <div className="mt-6">
+            <QuickTripEnquiry title="Send a cab enquiry" />
+          </div>
         </article>
       </section>
       <SiteFooter />

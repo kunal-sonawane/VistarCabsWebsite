@@ -11,6 +11,7 @@ import {
   Route,
 } from "lucide-react";
 import Header from "@/components/Header";
+import QuickTripEnquiry from "@/components/QuickTripEnquiry";
 import SiteFooter from "@/components/SiteFooter";
 import ManagedPageContent, {
   getManagedPageReplacement,
@@ -114,6 +115,14 @@ export default async function AboutNashik() {
               Simhastha travel guide <ArrowUpRight size={15} />
             </Link>
           </div>
+        </div>
+      </section>
+      <section className="container-wide py-8 sm:py-10">
+        <div className="mx-auto max-w-2xl">
+          <QuickTripEnquiry
+            initialFrom="Nashik"
+            title="Plan a Nashik journey"
+          />
         </div>
       </section>
       <section className="container-wide grid gap-8 py-12 lg:grid-cols-[1fr_.8fr] lg:py-16">

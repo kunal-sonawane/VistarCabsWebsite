@@ -134,7 +134,7 @@ export function ManagedPageReplacement({ page }: { page: ManagedPageRecord }) {
             {page.intro}
           </p>
           <Link
-            href="/#book"
+            href="#quick-enquiry"
             className="mt-6 inline-flex min-h-12 w-fit items-center justify-center gap-2 rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-slate-950"
           >
             Plan a journey <ArrowRight size={16} />

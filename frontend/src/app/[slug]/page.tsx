@@ -16,6 +16,7 @@ import {
 import Header from "@/components/Header";
 import SiteFooter from "@/components/SiteFooter";
 import QuickTripEnquiry from "@/components/QuickTripEnquiry";
+import NearbyPlaces from "@/components/NearbyPlaces";
 import ManagedPageContent, {
   getManagedPageReplacement,
   ManagedPageReplacement,
@@ -525,6 +526,13 @@ export default async function LandingPage({ params }: Props) {
             </div>
           </article>
         </section>
+      )}
+      {route && linkedCities.find((item) => item.name === route.to) && (
+        <NearbyPlaces
+          citySlug={linkedCities.find((item) => item.name === route.to)!.slug}
+          cityName={route.to}
+          eyebrow={`Plan a visit after arriving in ${route.to}`}
+        />
       )}
       {route && (
         <section className="bg-[#f4f7fb] py-12 sm:py-16">

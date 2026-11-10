@@ -20,16 +20,23 @@ export const site = {
     process.env.NEXT_PUBLIC_LINKEDIN_URL ||
     "https://www.linkedin.com/in/vistar-cabs-7965b9448/",
   demoContacts: process.env.NODE_ENV !== "production",
-  apiUrl: (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(
-    /\/$/,
-    "",
+  apiUrl: normalizeApiOrigin(
+    process.env.NEXT_PUBLIC_API_URL ||
+      (process.env.NODE_ENV === "production"
+        ? "https://api.vistarcabs.com"
+        : "http://localhost:5000"),
   ),
   description:
     "Plan local, intercity and airport cab enquiries from Nashik across Maharashtra with Vistar Cabs.",
 };
 
 export function getApiUrl() {
-  const configured = process.env.NEXT_PUBLIC_API_URL;
+  const apiOrigin =
+    process.env.NEXT_PUBLIC_API_URL ||
+    (process.env.NODE_ENV === "production"
+      ? "https://api.vistarcabs.com"
+      : undefined);
+  const configured = apiOrigin ? normalizeApiOrigin(apiOrigin) : undefined;
   // In production, route browser requests through the Next.js rewrite. This
   // keeps admin session cookies first-party even when the API has another host.
   if (
@@ -56,6 +63,17 @@ export function getApiUrl() {
   if (typeof window !== "undefined")
     return `http://${window.location.hostname}:5000`;
   return "http://localhost:5000";
+}
+
+function normalizeApiOrigin(value: string) {
+  const trimmed = value.trim().replace(/\/+$/, "");
+  try {
+    const url = new URL(trimmed);
+    url.pathname = url.pathname.replace(/\/+$/, "").replace(/\/api$/i, "");
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return trimmed.replace(/\/api$/i, "");
+  }
 }
 
 export const cities = [
@@ -1217,6 +1235,63 @@ export const cityContent: Record<
       }
     ],
   },
+};
+
+/**
+ * Approximate road distances from each city centre. These are planning guides,
+ * not live route calculations; actual distance varies by pickup point and road.
+ */
+export const nearbyPlacesByCity: Record<
+  string,
+  { name: string; distanceKm: number; note: string; href?: string }[]
+> = {
+  nashik: [
+    { name: "Pandavleni Caves", distanceKm: 8, note: "Rock-cut caves on the south side of the city.", href: "/cities/nashik/pandavleni-caves" },
+    { name: "Sula Vineyards", distanceKm: 15, note: "Vineyard-area outing; check venue visits and reservations.", href: "/cities/nashik/vineyards" },
+    { name: "Trimbakeshwar Temple", distanceKm: 28, note: "A separate temple-town journey; check current darshan guidance.", href: "/cities/nashik/trimbakeshwar" },
+    { name: "Anjaneri Hills", distanceKm: 27, note: "Hill and trail visit; allow for the approach and walking time.", href: "/cities/nashik/anjaneri" },
+    { name: "Igatpuri", distanceKm: 45, note: "A longer road outing toward the Western Ghats.", href: "/cities/nashik/igatpuri" },
+    { name: "Shirdi", distanceKm: 90, note: "Intercity pilgrimage journey; plan the return separately." },
+    { name: "Bhandardara", distanceKm: 70, note: "Hills and lake country; road and seasonal conditions can affect the trip.", href: "/cities/nashik/bhandardara" },
+  ],
+  mumbai: [
+    { name: "Gateway of India", distanceKm: 0, note: "Central South Mumbai landmark; use your exact starting locality for a useful estimate.", href: "/cities/mumbai/south-mumbai-and-fort" },
+    { name: "Siddhivinayak Temple", distanceKm: 12, note: "Temple-area access and traffic vary by day." },
+    { name: "Juhu Beach", distanceKm: 20, note: "Western-suburb destination; travel time depends heavily on traffic." },
+    { name: "Sanjay Gandhi National Park", distanceKm: 25, note: "Northern Mumbai outing; check current park entry information." },
+    { name: "Thane", distanceKm: 25, note: "A separate urban area with several possible pickup and drop points.", href: "/cities/mumbai/thane" },
+    { name: "Navi Mumbai", distanceKm: 35, note: "Distance varies by node; name the exact sector or locality.", href: "/cities/mumbai/navi-mumbai" },
+  ],
+  pune: [
+    { name: "Shaniwar Wada", distanceKm: 0, note: "Historic core landmark; nearby old-city streets can be busy." },
+    { name: "Aga Khan Palace", distanceKm: 7, note: "East Pune heritage site; verify current visitor guidance." },
+    { name: "Alandi", distanceKm: 22, note: "Pilgrimage town north of Pune; specify the temple-area drop point." },
+    { name: "Sinhagad Fort", distanceKm: 40, note: "Hill-fort road outing; check current vehicle access and local restrictions." },
+    { name: "Lonavala", distanceKm: 65, note: "Hill-station journey beyond the city; weekends may add road time.", href: "/cities/pune/lonavala" },
+    { name: "Bhimashankar", distanceKm: 110, note: "Long ghat-road pilgrimage and nature trip; plan a dedicated itinerary.", href: "/cities/pune/bhimashankar" },
+  ],
+  sambhajinagar: [
+    { name: "Bibi Ka Maqbara", distanceKm: 5, note: "City heritage landmark; confirm current visitor access." },
+    { name: "Daulatabad Fort", distanceKm: 15, note: "Fort visit with walking and steps; allow time beyond the road leg." },
+    { name: "Ellora Caves", distanceKm: 31, note: "Plan site time and current entry arrangements separately.", href: "/cities/sambhajinagar/ellora-caves" },
+    { name: "Grishneshwar Temple", distanceKm: 31, note: "Often planned with Ellora; check current temple guidance." },
+    { name: "Ajanta Caves", distanceKm: 100, note: "A distinct long-distance heritage excursion; plan a full itinerary.", href: "/cities/sambhajinagar/ajanta-caves" },
+  ],
+  ahilyanagar: [
+    { name: "Ahmednagar Fort", distanceKm: 3, note: "A city landmark; verify visitor access and opening information." },
+    { name: "Meherabad", distanceKm: 10, note: "Check the site’s current visitor guidance before planning a visit.", href: "/cities/ahilyanagar/meherabad" },
+    { name: "Ralegan Siddhi", distanceKm: 50, note: "A regional village visit; confirm the exact destination and schedule." },
+    { name: "Shani Shingnapur", distanceKm: 35, note: "Temple-area outing; check current visitor and access guidance.", href: "/cities/ahilyanagar/shani-shingnapur-route" },
+    { name: "Shirdi", distanceKm: 85, note: "Intercity pilgrimage journey; share your return and stop plan." },
+  ],
+  shirdi: [
+    { name: "Sai Baba Samadhi Mandir", distanceKm: 0, note: "Central Shirdi pilgrimage landmark; check current temple guidance.", href: "/cities/shirdi/shirdi-pilgrimage-area" },
+    { name: "Khandoba Temple", distanceKm: 1, note: "A nearby temple-area stop; confirm current access." },
+    { name: "Shani Shingnapur", distanceKm: 70, note: "A separate pilgrimage destination; allow time for the full return plan." },
+    { name: "Nashik", distanceKm: 87, note: "Intercity trip with several possible drop localities." },
+    { name: "Ellora Caves", distanceKm: 100, note: "A longer heritage outing; confirm the road plan and site access." },
+    { name: "Bhandardara", distanceKm: 110, note: "Longer countryside journey; overnight planning may be more practical." },
+  ],
 };
 
 // Long-form, original Vistar Cabs editorial copy for the city landing pages.

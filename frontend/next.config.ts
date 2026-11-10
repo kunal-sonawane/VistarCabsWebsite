@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "");
+const configuredApiUrl =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === "production" ? "https://api.vistarcabs.com" : undefined);
+const apiUrl = configuredApiUrl
+  ?.trim()
+  .replace(/\/+$/, "")
+  .replace(/\/api$/i, "");
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,

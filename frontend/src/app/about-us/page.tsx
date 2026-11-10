@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import SiteFooter from "@/components/SiteFooter";
+import QuickTripEnquiry from "@/components/QuickTripEnquiry";
 import ManagedPageContent, {
   getManagedPageReplacement,
   ManagedPageReplacement,
@@ -212,12 +213,9 @@ export default async function AboutPage() {
               Tell us where your journey begins.
             </h2>
           </div>
-          <Link
-            href="/#book"
-            className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-slate-950 sm:mt-0"
-          >
-            Open trip enquiry <ArrowRight size={16} />
-          </Link>
+          <div className="mt-5 w-full max-w-xl sm:mt-0">
+            <QuickTripEnquiry title="Ask about a Vistar Cabs trip" />
+          </div>
         </div>
       </section>
       <ManagedPageContent path="/about-us" />

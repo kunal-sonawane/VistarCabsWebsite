@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import QuickTripEnquiry from "@/components/QuickTripEnquiry";
+import NearbyPlaces from "@/components/NearbyPlaces";
 import SiteFooter from "@/components/SiteFooter";
 import ManagedPageContent, {
   getManagedPageReplacement,
@@ -361,6 +362,8 @@ export default async function CityPage({ params }: Props) {
           <p className="mt-6 rounded-xl bg-white p-4 text-xs leading-5 text-slate-600">Use the quick enquiry form at the top of this page. The team will confirm route availability and trip details directly.</p>
         </aside>
       </section>
+
+      <NearbyPlaces citySlug={c.slug} cityName={c.name} eyebrow="Road distances from the city centre" />
 
       {cityLongForm[c.slug] && (
         <section className="container-wide py-12 sm:py-16">
