@@ -2,16 +2,15 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, MapPin, Route, Plane } from "lucide-react";
+import { ArrowLeft, ArrowRight, Route, Plane } from "lucide-react";
 import Header from "@/components/Header";
 import QuickTripEnquiry from "@/components/QuickTripEnquiry";
-import NearbyPlaces from "@/components/NearbyPlaces";
 import SiteFooter from "@/components/SiteFooter";
 import ManagedPageContent, {
   getManagedPageReplacement,
   ManagedPageReplacement,
 } from "@/components/ManagedPageContent";
-import { airports, cities, destinationGuides, routes } from "@/lib/site";
+import { airports, cities, destinationGuides, nearbyPlacesByCity, routes } from "@/lib/site";
 import { metadataWithSeoOverride } from "@/lib/cms";
 
 type Props = { params: Promise<{ city: string; place: string }> };
@@ -41,6 +40,9 @@ export default async function DestinationPage({ params }: Props) {
   const replacement = await getManagedPageReplacement(pagePath);
   if (replacement) return <ManagedPageReplacement page={replacement} />;
   const hub = cities.find((c) => c.slug === city);
+  const guideDistance = nearbyPlacesByCity[guide.citySlug]?.find(
+    (item) => item.href === `/cities/${guide.citySlug}/${guide.slug}`,
+  );
   const relatedGuides = destinationGuides.filter(
     (item) => item.citySlug === city && item.slug !== place,
   );
@@ -105,23 +107,25 @@ export default async function DestinationPage({ params }: Props) {
           <p className="mt-5 max-w-3xl text-base leading-8 text-white/90">
             {guide.intro}
           </p>
+          {guideDistance && (
+            <p className="mt-2 inline-flex rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-bold text-white/90">
+              About {guideDistance.distanceKm} km by road from {guide.cityName} city centre
+            </p>
+          )}
         </div>
       </section>
-      <section className="container-wide grid gap-8 py-10 lg:grid-cols-[1fr_320px] lg:py-14">
-        <article className="order-2 rounded-3xl border border-slate-200 bg-white p-6 sm:p-9 lg:order-1">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-amber-700">
-            <MapPin size={22} />
-          </span>
-          <p className="eyebrow mt-6 text-amber-700">Destination planning</p>
-          <h2 className="mt-2 text-2xl font-black">
+      <section className="container-wide grid gap-5 py-6 lg:grid-cols-[1fr_320px] lg:py-8">
+        <article className="order-2 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 lg:order-1">
+          <p className="eyebrow text-amber-700">Destination planning</p>
+          <h2 className="mt-1 text-xl font-black">
             Make the journey details clear.
           </h2>
-          <p className="mt-3 leading-7 text-slate-600">
+          <p className="mt-2 text-xs leading-5 text-slate-600">
             This guide helps you prepare a cab enquiry for {guide.name}. It does
             not promise local coverage, admission, a particular vehicle or a
             confirmed booking.
           </p>
-          <div className="mt-5 space-y-4 text-base leading-8 text-slate-700">
+          <div className="mt-3 grid gap-3 text-sm leading-6 text-slate-700 md:grid-cols-2">
             <p>
               A useful {guide.name} cab request describes the journey from its
               starting point to the exact entrance, parking area or meeting
@@ -150,34 +154,23 @@ export default async function DestinationPage({ params }: Props) {
               confirms availability, fare, vehicle and pickup arrangements.
             </p>
           </div>
-          <h2 className="mt-8 text-xl font-black">Before you request a cab</h2>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          <h2 className="mt-5 text-base font-black">Before you request a cab</h2>
+          <ul className="mt-2 grid gap-2 sm:grid-cols-2">
             {guide.planning.map((item) => (
               <li
                 key={item}
-                className="flex gap-3 rounded-xl bg-[#e7f5ff] p-4 text-sm leading-6 text-slate-700"
+                className="flex gap-2 rounded-lg bg-[#e7f5ff] p-2.5 text-xs leading-5 text-slate-700"
               >
                 <span className="font-black text-[#0758c9]">✓</span>
                 {item}
               </li>
             ))}
           </ul>
-          <div className="mt-8 rounded-2xl border border-amber-100 bg-amber-50 p-5">
-            <h3 className="text-sm font-black text-amber-950">
-              Details that help the team respond
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-amber-950">
-              Send your pickup address, destination entrance or meeting point,
-              date, preferred time, passenger count if known, return plan and
-              any other stops. Confirm the final schedule, fare and waiting
-              terms directly.
-            </p>
-          </div>
-          <section className="mt-9">
-            <h2 className="text-xl font-black">Frequently asked questions</h2>
+          <section className="mt-5 border-t border-slate-100 pt-3">
+            <h2 className="text-base font-black">Frequently asked questions</h2>
             <div className="mt-3 divide-y divide-slate-200">
               {guide.faq.map(([q, a]) => (
-                <details key={q} className="group py-4">
+                <details key={q} className="group py-2.5">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-bold">
                     <span>{q}</span>
                     <span className="text-lg text-amber-600 group-open:rotate-45">
@@ -189,11 +182,6 @@ export default async function DestinationPage({ params }: Props) {
               ))}
             </div>
           </section>
-          <p className="mt-7 border-t border-slate-100 pt-5 text-xs leading-5 text-slate-500">
-            Check current opening times, access rules, road conditions and venue
-            requirements with the relevant authority before travel. Vistar Cabs
-            confirms vehicle availability, trip terms and fare directly.
-          </p>
         </article>
         <aside className="order-1 h-fit lg:order-2">
           <QuickTripEnquiry
@@ -211,25 +199,18 @@ export default async function DestinationPage({ params }: Props) {
           )}
         </aside>
       </section>
-      {hub && (
-        <NearbyPlaces
-          citySlug={hub.slug}
-          cityName={hub.name}
-          eyebrow={`More places around ${hub.name}`}
-        />
-      )}
       {relatedRoutes.length > 0 && (
-        <section className="container-wide pb-12">
+        <section className="container-wide pb-7">
           <p className="eyebrow text-amber-700">Intercity connections</p>
           <h2 className="mt-2 text-2xl font-black">
             Continue from {guide.cityName}.
           </h2>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-3 flex flex-wrap gap-2">
             {relatedRoutes.map((r) => (
               <Link
                 key={r.slug}
                 href={`/${r.slug}`}
-                className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 text-sm font-bold hover:border-amber-300"
+                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-bold hover:border-amber-300"
               >
                 <span className="inline-flex items-center gap-2">
                   <Route size={16} className="text-[#0758c9]" />
@@ -242,14 +223,14 @@ export default async function DestinationPage({ params }: Props) {
         </section>
       )}
       {relatedAirports.length > 0 && (
-        <section className="container-wide pb-12">
+        <section className="container-wide pb-7">
           <p className="eyebrow text-blue-800">Airport pages</p>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-2 flex flex-wrap gap-2">
             {relatedAirports.map((a) => (
               <Link
                 key={a.slug}
                 href={`/airports/${a.slug}`}
-                className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-4 py-2 text-xs font-bold text-[#0758c9]"
+                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-blue-100 bg-white px-3 py-2 text-xs font-bold text-[#0758c9]"
               >
                 <Plane size={14} />
                 {a.name} ({a.code})
@@ -259,26 +240,23 @@ export default async function DestinationPage({ params }: Props) {
         </section>
       )}
       {relatedGuides.length > 0 && (
-        <section className="container-wide pb-14">
+        <section className="container-wide pb-7">
           <p className="eyebrow text-amber-700">Nearby planning pages</p>
           <h2 className="mt-2 text-2xl font-black">
             Other {guide.cityName} journey ideas.
           </h2>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {relatedGuides.map((g) => (
               <Link
                 key={g.slug}
                 href={`/cities/${g.citySlug}/${g.slug}`}
-                className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-amber-300 hover:shadow-md"
+                className="rounded-xl border border-slate-200 bg-white p-3 transition hover:border-amber-300"
               >
                 <span className="text-[10px] font-black uppercase tracking-wider text-amber-700">
                   {g.category}
                 </span>
                 <h3 className="mt-2 text-base font-black">{g.name}</h3>
-                <p className="mt-2 line-clamp-3 text-xs leading-5 text-slate-600">
-                  {g.intro}
-                </p>
-                <span className="mt-4 inline-flex items-center gap-1 text-xs font-extrabold text-[#0758c9]">
+                <span className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-[#0758c9]">
                   View guide <ArrowRight size={13} />
                 </span>
               </Link>

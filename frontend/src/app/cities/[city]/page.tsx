@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import {
   ArrowRight,
   ArrowUpRight,
-  Check,
   MapPin,
   Plane,
   Route,
@@ -23,7 +22,6 @@ import {
   airports,
   cities,
   cityContent,
-  cityLongForm,
   destinationGuides,
   routes,
 } from "@/lib/site";
@@ -311,202 +309,88 @@ export default async function CityPage({ params }: Props) {
         </div>
       </section>
 
-      <section className="container-wide grid gap-10 py-14 lg:grid-cols-[1.1fr_.9fr] lg:py-20">
-        <div>
-          <p className="eyebrow text-amber-700">A local view of {c.name}</p>
-          <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
-            Places to include
-            <br className="hidden sm:block" /> in your trip plan.
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-            Choose the area or destination that best describes your journey.
-            Check current visitor access separately and confirm cab availability
-            for your date.
-          </p>
-          <div className="mt-7 space-y-5">
-            {places.map((place) => (
-              <article
-                key={place.name}
-                className="border-b border-slate-200 pb-4 last:border-0"
-              >
-                <h3 className="text-base font-black">{place.name}</h3>
-                <p className="mt-1 text-sm leading-7 text-slate-600">{place.description}</p>
-                {place.href && <Link href={place.href} className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-[#0758c9]">Read the destination guide <ArrowRight size={13} /></Link>}
-              </article>
-            ))}
-          </div>
-        </div>
-        <aside className="h-fit rounded-[24px] bg-[#f4f7fb] p-5 sm:p-7">
-          <p className="eyebrow text-amber-700">Plan with a little clarity</p>
-          <h2 className="mt-3 text-2xl font-black">
-            What helps us shape the enquiry?
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            A few details make it easier to understand the trip you have in
-            mind.
-          </p>
-          {content && (
-            <div className="mt-5 space-y-4">
-              {content.checklist.map((item, i) => (
-                <div key={item} className="flex gap-3">
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white text-blue-700 shadow-sm">
-                    <Check size={14} />
-                  </span>
-                  <p className="pt-1 text-xs leading-5 text-slate-700">
-                    {item}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-          <p className="mt-6 rounded-xl bg-white p-4 text-xs leading-5 text-slate-600">Use the quick enquiry form at the top of this page. The team will confirm route availability and trip details directly.</p>
-        </aside>
-      </section>
-
-      <NearbyPlaces citySlug={c.slug} cityName={c.name} eyebrow="Road distances from the city centre" />
-
-      {cityLongForm[c.slug] && (
-        <section className="container-wide py-12 sm:py-16">
-          <article className="mx-auto max-w-4xl">
-            <p className="eyebrow text-amber-700">Vistar Cabs city travel guide</p>
-            {cityLongForm[c.slug].map((part, index) => (
-              <section key={part.heading} className={index === 0 ? "mt-3" : "mt-10 border-t border-slate-200 pt-8"}>
-                <h2 className="text-2xl font-black tracking-tight sm:text-3xl">{part.heading}</h2>
-                <div className="mt-4 space-y-4 text-base leading-8 text-slate-700">
-                  {part.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-                </div>
-              </section>
-            ))}
-          </article>
-        </section>
-      )}
-
       {content && (
-        <section className="bg-[#f4f7fb] py-14 sm:py-18">
-          <div className="container-wide">
-            <div className="max-w-3xl">
-              <p className="eyebrow text-amber-700">Local trip ideas</p>
-              <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
-                {content.heading}
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-slate-600">
-                {content.overview}
-              </p>
-            </div>
-            <div className="mt-7 max-w-4xl space-y-5">
-              {content.tripIdeas.map((idea) => (
-                <article
-                  key={idea.title}
-                  className="border-b border-slate-200 pb-5 last:border-0"
-                >
-                  <h3 className="text-lg font-black">{idea.title}</h3>
-                  <p className="mt-2 text-sm leading-7 text-slate-600">
-                    {idea.copy}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {content && (
-        <section className="container-wide py-14 sm:py-18">
-          <div className="max-w-3xl">
-            <p className="eyebrow text-amber-700">Cab options in {c.name}</p>
-            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
-              Match the enquiry to the trip you have in mind.
+        <section className="container-wide grid gap-6 py-8 sm:py-10 lg:grid-cols-2">
+          <div className="order-2 min-w-0 lg:order-1">
+            <p className="eyebrow text-amber-700">Cab services in {c.name}</p>
+            <h2 className="mt-1 text-xl font-black tracking-tight sm:text-2xl">
+              {content.heading}
             </h2>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              City pickups, airport transfers and outstation routes need
-              different details. Choose the closest description below, then
-              use the quick form above to send the basic trip request.
+            <p className="mt-2 text-xs leading-5 text-slate-600">
+              {content.overview}
             </p>
-          </div>
-          <div className="mt-7 max-w-4xl space-y-5">
-            {content.services.map((service) => (
-              <article
-                key={service.title}
-                className="border-b border-slate-200 pb-5 last:border-0"
-              >
-                <h3 className="text-lg font-black">{service.title}</h3>
-                <p className="mt-2 text-sm leading-7 text-slate-600">
-                  {service.copy}
-                </p>
-              </article>
-            ))}
-          </div>
-          <div className="mt-8 grid gap-6 rounded-3xl bg-[#071a2f] p-6 text-white sm:p-8 lg:grid-cols-[.8fr_1.2fr]">
-            <div>
-              <p className="eyebrow text-amber-300">How to enquire</p>
-              <h3 className="mt-2 text-2xl font-black">
-                Four clear steps to a trip request.
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-slate-300">
-                Sending the form starts a conversation. Your cab is arranged
-                only after the details are reviewed and confirmed with you.
-              </p>
-            </div>
-            <ol className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
-              {[
-                `Enter where you are starting in ${c.name} and your destination.`,
-                "Choose the travel date and preferred pickup time.",
-                "Add a mobile number for the callback and send the enquiry.",
-                "Review the follow-up and confirm vehicle, fare and trip terms directly.",
-              ].map((step, index) => (
-                <li key={step} className="flex gap-3 border-b border-white/15 pb-3">
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-amber-300 text-xs font-black text-slate-950">
-                    {index + 1}
-                  </span>
-                  <span className="pt-1 text-sm leading-6 text-slate-100">
-                    {step}
-                  </span>
+            <ul className="mt-3 hidden gap-x-5 lg:grid lg:grid-cols-2">
+              {content.services.map((service) => (
+                <li key={service.title} className="border-b border-slate-200 py-2.5">
+                  <h3 className="text-sm font-extrabold">{service.title}</h3>
+                  <p className="mt-1 text-xs leading-5 text-slate-600">{service.copy}</p>
                 </li>
               ))}
-            </ol>
-          </div>
-          <p className="mt-5 rounded-2xl border-l-4 border-amber-400 bg-amber-50 p-4 text-xs leading-6 text-amber-950">
-            Vehicle suitability depends on passenger count, luggage, route and
-            availability for your date. Ask Vistar Cabs to confirm the vehicle,
-            total fare, waiting terms, tolls and any extra-stop charges before
-            accepting the trip.
-          </p>
-        </section>
-      )}
-
-      {content?.editorialSections?.map((group) => (
-        <section
-          key={group.title}
-          className="bg-white py-8 sm:py-10"
-        >
-          <div className="container-wide">
-            <div className="max-w-3xl">
-              <p className="eyebrow text-amber-700">{group.eyebrow}</p>
-              <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
-                {group.title}
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-slate-600">
-                {group.intro}
-              </p>
-            </div>
-            <div className="mt-7 max-w-4xl space-y-5">
-              {group.items.map((item) => (
-                <article
-                  key={item.title}
-                  className="border-b border-slate-200 pb-5 last:border-0"
-                >
-                  <h3 className="text-base font-black">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-7 text-slate-600">
-                    {item.copy}
-                  </p>
-                </article>
+            </ul>
+            <details className="mt-2 lg:hidden">
+              <summary className="min-h-11 cursor-pointer border-b border-slate-200 py-2 text-xs font-extrabold text-blue-900">
+                Cab services and trip options
+              </summary>
+              <ul className="grid gap-x-4 sm:grid-cols-2">
+                {content.services.map((service) => (
+                  <li key={service.title} className="border-b border-slate-200 py-2">
+                    <h3 className="text-xs font-extrabold">{service.title}</h3>
+                    <p className="mt-1 text-[11px] leading-4 text-slate-600">{service.copy}</p>
+                  </li>
+                ))}
+              </ul>
+            </details>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {places.map((place) => (
+                place.href ? (
+                  <Link key={place.name} href={place.href} className="inline-flex min-h-9 items-center rounded-full border border-slate-200 px-3 py-1.5 text-[11px] font-bold text-blue-800 hover:border-amber-400">
+                    {place.name}
+                  </Link>
+                ) : (
+                  <span key={place.name} className="inline-flex min-h-9 items-center rounded-full border border-slate-200 px-3 py-1.5 text-[11px] font-bold text-slate-600">
+                    {place.name}
+                  </span>
+                )
               ))}
             </div>
           </div>
+          <div className="order-1 lg:order-2">
+            <NearbyPlaces
+              inline
+              citySlug={c.slug}
+              cityName={c.name}
+              eyebrow="Approximate road distances from the city centre"
+            />
+          </div>
         </section>
-      ))}
+      )}
+
+      {content?.editorialSections?.length ? (
+        <details className="container-wide border-t border-slate-200 py-3">
+          <summary className="min-h-11 cursor-pointer py-2 text-sm font-extrabold text-blue-900">
+            More local travel notes for {c.name}
+          </summary>
+          <div className="grid gap-5 pb-4 pt-2 lg:grid-cols-2">
+            {content.editorialSections.map((group) => (
+              <section key={group.title} className="min-w-0 rounded-2xl bg-[#f4f7fb] p-4 sm:p-5">
+                <p className="eyebrow text-amber-700">{group.eyebrow}</p>
+                <h2 className="mt-1 text-lg font-black">{group.title}</h2>
+                <p className="mt-1 text-xs leading-5 text-slate-600">{group.intro}</p>
+                <ul className="mt-2 grid gap-x-4 sm:grid-cols-2">
+                  {group.items.map((item) => (
+                    <li key={item.title} className="border-b border-slate-200 py-2">
+                      <h3 className="text-xs font-extrabold">{item.title}</h3>
+                      <p className="mt-1 text-[11px] leading-4 text-slate-600">{item.copy}</p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </details>
+      ) : null}
       {linkedAirports.length > 0 && (
-        <section className="container-wide py-14 sm:py-18">
+        <section className="container-wide py-7 sm:py-9">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
             <div>
               <p className="eyebrow text-amber-700">Airport connections</p>
@@ -548,7 +432,7 @@ export default async function CityPage({ params }: Props) {
       )}
 
       {related.length > 0 && (
-        <section className="bg-[#071a2f] py-14 text-white sm:py-16">
+        <section className="bg-[#071a2f] py-8 text-white sm:py-10">
           <div className="container-wide">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
               <div>
@@ -577,7 +461,7 @@ export default async function CityPage({ params }: Props) {
         </section>
       )}
 
-      <section className="container-wide grid gap-10 py-14 lg:grid-cols-[.7fr_1.3fr] sm:py-18">
+      <section className="container-wide grid gap-6 py-8 lg:grid-cols-[.7fr_1.3fr] sm:py-10">
         <div>
           <p className="eyebrow text-amber-700">Good to know</p>
           <h2 className="mt-3 text-3xl font-black">Before you enquire.</h2>
@@ -599,7 +483,7 @@ export default async function CityPage({ params }: Props) {
         </div>
         <div className="divide-y divide-slate-200">
           {faq.map((item) => (
-            <details key={item.q} className="group py-4">
+            <details key={item.q} className="group py-2.5">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-bold">
                 <span>{item.q}</span>
                 <span className="text-xl text-amber-700 transition group-open:rotate-45">

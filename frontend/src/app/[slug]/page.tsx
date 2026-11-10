@@ -427,34 +427,20 @@ export default async function LandingPage({ params }: Props) {
           </aside>
         </div>
       </section>
-      <section className="container-wide grid gap-8 py-12 lg:grid-cols-[1.1fr_.9fr] lg:py-16">
+      {!route && (
+      <section className="container-wide grid gap-8 py-8 lg:grid-cols-[1.1fr_.9fr] lg:py-10">
         <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_18px_55px_rgba(7,26,47,.06)] sm:p-8">
           <p className="eyebrow text-amber-700">
-            {route ? "Your route, clearly planned" : "What to expect"}
+            What to expect
           </p>
           <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
-            {route
-              ? `Prepare for the ${route.from} to ${route.to} drive.`
-              : "A simple enquiry with direct follow-up."}
+            A simple enquiry with direct follow-up.
           </h2>
           <p className="mt-3 text-sm leading-7 text-slate-600">
-            {route
-              ? route.details
-              : "Share your locations and schedule, then let the team review the request. The page does not confirm live availability, vehicle type or a fixed fare."}
+            Share your locations and schedule, then let the team review the request. The page does not confirm live availability, vehicle type or a fixed fare.
           </p>
           <div className="mt-6 space-y-3">
-            {(route
-              ? [
-                  "Exact pickup and destination",
-                  "Travel date and preferred time",
-                  "Return plan, passengers or stops",
-                ]
-              : [
-                  "Choose a service",
-                  "Add the trip details",
-                  "Confirm availability and fare",
-                ]
-            ).map((x, i) => (
+            {["Choose a service", "Add the trip details", "Confirm availability and fare"].map((x, i) => (
               <div key={x} className="flex gap-3 border-b border-slate-200 pb-3 last:border-0">
                 <span className="pt-1 text-[10px] font-black text-blue-800">
                   0{i + 1}
@@ -516,15 +502,17 @@ export default async function LandingPage({ params }: Props) {
           </div>
         </aside>
       </section>
+      )}
       {service && (
-        <section className="container-wide pb-14 sm:pb-18">
-          <article className="mx-auto max-w-4xl">
-            <p className="eyebrow text-amber-700">Vistar Cabs service guide</p>
-            <h2 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">{service.title}</h2>
-            <div className="mt-4 space-y-4 text-base leading-8 text-slate-700">
-              {serviceNarrative.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-            </div>
-          </article>
+        <section className="container-wide pb-7 sm:pb-9">
+          <details className="border-t border-slate-200 py-2">
+            <summary className="min-h-11 cursor-pointer py-2 text-sm font-extrabold text-blue-900">
+              Read more about {service.title.toLowerCase()}
+            </summary>
+            <article className="grid gap-3 border-t border-slate-100 py-3 md:grid-cols-2">
+              {serviceNarrative.map((paragraph) => <p key={paragraph} className="text-xs leading-6 text-slate-600">{paragraph}</p>)}
+            </article>
+          </details>
         </section>
       )}
       {route && linkedCities.find((item) => item.name === route.to) && (
@@ -535,7 +523,7 @@ export default async function LandingPage({ params }: Props) {
         />
       )}
       {route && (
-        <section className="bg-[#f4f7fb] py-12 sm:py-16">
+        <section className="bg-[#f4f7fb] py-7 sm:py-9">
           <div className="container-wide">
             <div className="max-w-3xl">
               <p className="eyebrow text-amber-700">Plan this journey</p>
@@ -550,73 +538,34 @@ export default async function LandingPage({ params }: Props) {
                 arranged for your date and share the fare before you decide.
               </p>
             </div>
-            <article className="mt-7 max-w-4xl">
-              <h3 className="text-xl font-black tracking-tight sm:text-2xl">
-                {`Taxi from ${route.from} to ${route.to}: route and trip planning`}
-              </h3>
-              <div className="mt-4 space-y-4 text-base leading-8 text-slate-700">
-                {routeNarrative.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            <details className="mt-3 max-w-4xl">
+              <summary className="min-h-11 cursor-pointer py-2 text-sm font-extrabold text-blue-900">
+                Read the full route guide
+              </summary>
+              <div className="grid gap-5 border-t border-slate-200 py-3 md:grid-cols-2">
+                {routeNarrative.map((paragraph) => (
+                  <p key={paragraph} className="text-xs leading-6 text-slate-600">{paragraph}</p>
+                ))}
               </div>
-            </article>
-            <div className="mt-6 max-w-4xl space-y-4">
-              {[
-                ["One-way trip", `Travel from your pickup in ${route.from} to your chosen address in ${route.to}.`],
-                ["Return journey", "Share when you need the return and whether it is the same day or a later date."],
-                ["Stops along the way", "List planned stops and destination areas so the route request can be reviewed clearly."],
-              ].map(([title, copy]) => (
-                <article key={title} className="border-b border-slate-200 pb-4 last:border-0">
-                  <h3 className="text-lg font-black">{title}</h3>
-                  <p className="mt-2 text-sm leading-7 text-slate-600">{copy}</p>
-                </article>
-              ))}
-            </div>
-            <div className="mt-10">
+            </details>
+            <div className="mt-5">
               <p className="eyebrow text-amber-700">Ways to plan this route</p>
-              <h3 className="mt-2 text-2xl font-black tracking-tight">
+              <h3 className="mt-1 text-xl font-black tracking-tight">
                 Choose the trip type that matches your plans.
               </h3>
-              <div className="mt-5 max-w-4xl space-y-4">
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {routeTripOptions.map((option) => (
                   <article
                     key={option.title}
-                    className="border-b border-slate-200 pb-4 last:border-0"
+                    className="rounded-xl border border-slate-200 bg-white p-3"
                   >
-                    <h4 className="text-lg font-black">{option.title}</h4>
-                    <p className="mt-2 text-sm leading-7 text-slate-600">
+                    <h4 className="text-sm font-black">{option.title}</h4>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">
                       {option.copy}
                     </p>
                   </article>
                 ))}
               </div>
-            </div>
-            <div className="mt-10 grid gap-6 rounded-3xl border border-blue-100 bg-blue-50/70 p-5 sm:p-7 lg:grid-cols-[.8fr_1.2fr]">
-              <div>
-                <p className="eyebrow text-blue-800">Before you enquire</p>
-                <h3 className="mt-2 text-xl font-black">
-                  A clear request gets a useful follow-up.
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  The form starts with this route. Add the exact addresses and
-                  schedule, then keep your phone available for the response.
-                </p>
-              </div>
-              <ol className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
-                {[
-                  `Enter your exact pickup point in ${route.from}.`,
-                  `Enter the destination address or locality in ${route.to}.`,
-                  "Choose your travel date and preferred pickup time.",
-                  "Add a callback number; include return needs and stops when the team follows up.",
-                ].map((step, index) => (
-                  <li key={step} className="flex gap-3 border-b border-blue-200 pb-3">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-amber-100 text-xs font-black text-amber-900">
-                      {index + 1}
-                    </span>
-                    <span className="pt-1 text-sm leading-6 text-slate-700">
-                      {step}
-                    </span>
-                  </li>
-                ))}
-              </ol>
             </div>
           </div>
         </section>

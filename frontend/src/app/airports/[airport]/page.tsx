@@ -50,24 +50,6 @@ export default async function AirportPage({ params }: Props) {
   const cityRoutes = routes
     .filter((r) => r.from === a.city || r.to === a.city)
     .slice(0, 6);
-  const airportPlanOptions = [
-    {
-      title: `Pickup at ${a.name}`,
-      copy: `For an arrival pickup, share your flight number, scheduled landing time, terminal or meeting point, passenger count and the address you are travelling to after leaving ${a.name}.`,
-    },
-    {
-      title: `Drop-off at ${a.name}`,
-      copy: `For a departure, provide your full pickup address, flight departure time and terminal at ${a.name}. Ask the team to confirm the pickup plan and allow a suitable traffic buffer.`,
-    },
-    {
-      title: `Continue from ${a.city}`,
-      copy: `If the airport is one part of a longer journey, include your onward city or destination, any intermediate stops and whether you need a return trip.`,
-    },
-    {
-      title: "Passengers and baggage",
-      copy: "Mention how many people are travelling, the amount of luggage and any mobility or child-seat requirements. The team can confirm whether an appropriate vehicle is available.",
-    },
-  ];
   const airportFaq = [
     {
       q: `What should I include in a ${a.name} pickup request?`,
@@ -181,19 +163,21 @@ export default async function AirportPage({ params }: Props) {
         </div>
       </section>
 
-      <section className="container-wide py-12 sm:py-16">
-        <article className="mx-auto max-w-4xl">
-          <p className="eyebrow text-amber-700">Airport taxi and transfer guide</p>
-          {airportNarrative.map((part, index) => (
-            <section key={part.heading} className={index === 0 ? "mt-3" : "mt-10 border-t border-slate-200 pt-8"}>
-              <h2 className="text-2xl font-black tracking-tight sm:text-3xl">{part.heading}</h2>
-              <div className="mt-4 space-y-4 text-base leading-8 text-slate-700">
+      <details className="container-wide py-2">
+        <summary className="min-h-11 cursor-pointer py-2 text-sm font-extrabold text-blue-900">
+          Read the full {a.name} transfer guide
+        </summary>
+        <div className="grid gap-4 border-t border-slate-200 py-3 md:grid-cols-2">
+          {airportNarrative.map((part) => (
+            <article key={part.heading} className="rounded-xl bg-[#f4f7fb] p-4">
+              <h2 className="text-sm font-black">{part.heading}</h2>
+              <div className="mt-2 space-y-2 text-xs leading-5 text-slate-600">
                 {part.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
               </div>
-            </section>
+            </article>
           ))}
-        </article>
-      </section>
+        </div>
+      </details>
 
       <section className="relative z-10 -mt-5">
         <div className="container-wide">
@@ -233,18 +217,18 @@ export default async function AirportPage({ params }: Props) {
         </div>
       </section>
 
-      <section className="container-wide grid gap-10 py-14 lg:grid-cols-[1.1fr_.9fr] lg:py-20">
+      <section className="container-wide grid gap-6 py-7 lg:grid-cols-[1.1fr_.9fr] lg:py-9">
         <div>
           <p className="eyebrow text-amber-700">Transfer planning</p>
           <h2 className="mt-3 max-w-xl text-3xl font-black tracking-tight sm:text-4xl">
             Give the team a clear flight plan.
           </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+          <p className="mt-2 max-w-2xl text-xs leading-5 text-slate-600">
             Include the details below in your enquiry. The team can then discuss
             your pickup or drop request and confirm the meeting point,
             availability, fare and any waiting terms.
           </p>
-          <div className="mt-7 max-w-4xl space-y-5">
+          <div className="mt-3 grid gap-x-5 sm:grid-cols-2">
             {[
               [
                 "Flight number",
@@ -265,13 +249,10 @@ export default async function AirportPage({ params }: Props) {
             ].map(([title, copy], i) => (
               <article
                 key={title}
-                className="border-b border-slate-200 pb-4 last:border-0"
+                className="border-b border-slate-200 py-2.5"
               >
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#f2f7fc] text-[10px] font-black text-blue-800">
-                  0{i + 1}
-                </span>
-                <h3 className="mt-3 text-sm font-black">{title}</h3>
-                <p className="mt-1 text-sm leading-7 text-slate-600">{copy}</p>
+                <h3 className="text-sm font-black">{title}</h3>
+                <p className="mt-1 text-xs leading-5 text-slate-600">{copy}</p>
               </article>
             ))}
           </div>
@@ -321,114 +302,40 @@ export default async function AirportPage({ params }: Props) {
         </aside>
       </section>
 
-      {airportContext && (
-        <section className="container-wide py-14 sm:py-18">
-          <div className="max-w-3xl">
+      <section className="container-wide grid gap-6 py-6 sm:py-8 lg:grid-cols-2">
+        {airportContext && (
+          <div className="order-2 min-w-0 lg:order-1">
             <p className="eyebrow text-amber-700">Local airport guide</p>
-            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+            <h2 className="mt-1 text-xl font-black tracking-tight sm:text-2xl">
               {airportContext.title}
             </h2>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
+            <p className="mt-2 text-xs leading-5 text-slate-600">
               {airportContext.intro}
             </p>
+            <ul className="mt-2 grid gap-x-4 sm:grid-cols-2">
+              {airportContext.items.map((item) => (
+                <li key={item.title} className="border-b border-slate-200 py-2">
+                  <h3 className="text-xs font-extrabold">{item.title}</h3>
+                  <p className="mt-1 text-[11px] leading-4 text-slate-600">{item.copy}</p>
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="mt-7 max-w-4xl space-y-5">
-            {airportContext.items.map((item) => (
-              <article
-                key={item.title}
-                className="border-b border-slate-200 pb-5 last:border-0"
-              >
-                <h3 className="text-lg font-black">{item.title}</h3>
-                <p className="mt-2 text-sm leading-7 text-slate-600">
-                  {item.copy}
-                </p>
-              </article>
-            ))}
+        )}
+        {city && (
+          <div className="order-1 lg:order-2">
+            <NearbyPlaces
+              inline
+              citySlug={city.slug}
+              cityName={city.name}
+              eyebrow={`Visitor distances around ${city.name}`}
+            />
           </div>
-        </section>
-      )}
-
-      {city && (
-        <NearbyPlaces
-          citySlug={city.slug}
-          cityName={city.name}
-          eyebrow={`Visitor distances around ${city.name}`}
-        />
-      )}
-
-      <section className="bg-[#f4f7fb] py-12 sm:py-16">
-        <div className="container-wide">
-          <div className="max-w-3xl">
-            <p className="eyebrow text-amber-700">Airport cab planning</p>
-            <h2 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
-              Plan the whole transfer, not only the terminal pickup.
-            </h2>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              {a.name} may be the start or end of a longer trip. A precise
-              address, flight schedule and pickup direction help the Vistar Cabs
-              team understand what you need. Send an enquiry for the route and
-              date; it is not a confirmed vehicle or booking.
-            </p>
-          </div>
-          <div className="mt-6 max-w-4xl space-y-5">
-            {airportPlanOptions.map((option) => (
-              <article
-                key={option.title}
-                className="border-b border-slate-200 pb-5 last:border-0"
-              >
-                <h3 className="text-lg font-black">{option.title}</h3>
-                <p className="mt-2 text-sm leading-7 text-slate-600">
-                  {option.copy}
-                </p>
-              </article>
-            ))}
-          </div>
-          {cityRoutes.length > 0 && (
-            <div className="mt-8 rounded-2xl bg-white p-5 sm:p-6">
-              <h3 className="text-lg font-black">
-                Popular route enquiries connected with {a.city}
-              </h3>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
-                Use a route page to add a starting city and destination before
-                sending your request.
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {cityRoutes.map((route) => (
-                  <Link
-                    key={route.slug}
-                    href={`/${route.slug}`}
-                    className="rounded-full border border-slate-200 px-3.5 py-2 text-xs font-bold text-blue-800 hover:border-amber-300"
-                  >
-                    {route.from} to {route.to}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="bg-[#f4f7fb] py-12 sm:py-16">
-        <div className="container-wide flex flex-col justify-between gap-5 md:flex-row md:items-center">
-          <div className="max-w-2xl">
-            <p className="eyebrow text-amber-700">A clear expectation</p>
-            <h2 className="mt-2 text-2xl font-black sm:text-3xl">
-              This is a transfer enquiry, not a live booking.
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Flight operations, pickup procedures, wait times, vehicle and fare
-              can change. Confirm the latest arrangements directly with the
-              airport and Vistar Cabs.
-            </p>
-          </div>
-          <span className="text-sm font-bold text-blue-800">
-            Use the airport enquiry form at the top of this page.
-          </span>
-        </div>
+        )}
       </section>
 
       {(city || cityRoutes.length > 0) && (
-        <section className="container-wide py-14 sm:py-18">
+        <section className="container-wide py-7 sm:py-9">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
               <p className="eyebrow text-amber-700">
@@ -448,7 +355,7 @@ export default async function AirportPage({ params }: Props) {
             )}
           </div>
           {cityRoutes.length > 0 && (
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               {cityRoutes.map((r) => (
                 <Link
                   key={r.slug}
@@ -463,15 +370,15 @@ export default async function AirportPage({ params }: Props) {
         </section>
       )}
 
-      <section className="bg-[#f4f7fb] py-12 sm:py-16">
+      <section className="bg-[#f4f7fb] py-7 sm:py-9">
         <div className="container-wide mx-auto max-w-4xl">
           <p className="eyebrow text-amber-700">Airport transfer questions</p>
-          <h2 className="mt-2 text-3xl font-black tracking-tight">
+          <h2 className="mt-1 text-2xl font-black tracking-tight">
             Before you travel via {a.name}.
           </h2>
           <div className="mt-4 divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white px-5">
             {airportFaq.map((item) => (
-              <details key={item.q} className="group py-4">
+              <details key={item.q} className="group py-2.5">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-bold">
                   <span>{item.q}</span>
                   <span className="text-xl text-amber-700 transition group-open:rotate-45">
