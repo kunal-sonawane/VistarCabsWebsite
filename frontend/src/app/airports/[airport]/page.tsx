@@ -163,22 +163,6 @@ export default async function AirportPage({ params }: Props) {
         </div>
       </section>
 
-      <details className="container-wide py-2">
-        <summary className="min-h-11 cursor-pointer py-2 text-sm font-extrabold text-blue-900">
-          Read the full {a.name} transfer guide
-        </summary>
-        <div className="grid gap-4 border-t border-slate-200 py-3 md:grid-cols-2">
-          {airportNarrative.map((part) => (
-            <article key={part.heading} className="rounded-xl bg-[#f4f7fb] p-4">
-              <h2 className="text-sm font-black">{part.heading}</h2>
-              <div className="mt-2 space-y-2 text-xs leading-5 text-slate-600">
-                {part.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-              </div>
-            </article>
-          ))}
-        </div>
-      </details>
-
       <section className="relative z-10 -mt-5">
         <div className="container-wide">
           <div className="grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(7,26,47,.10)] sm:grid-cols-3">
@@ -217,89 +201,25 @@ export default async function AirportPage({ params }: Props) {
         </div>
       </section>
 
-      <section className="container-wide grid gap-6 py-7 lg:grid-cols-[1.1fr_.9fr] lg:py-9">
-        <div>
-          <p className="eyebrow text-amber-700">Transfer planning</p>
-          <h2 className="mt-3 max-w-xl text-3xl font-black tracking-tight sm:text-4xl">
-            Give the team a clear flight plan.
-          </h2>
-          <p className="mt-2 max-w-2xl text-xs leading-5 text-slate-600">
-            Include the details below in your enquiry. The team can then discuss
-            your pickup or drop request and confirm the meeting point,
-            availability, fare and any waiting terms.
-          </p>
-          <div className="mt-3 grid gap-x-5 sm:grid-cols-2">
-            {[
-              [
-                "Flight number",
-                "Share it when available, especially for an arrival.",
-              ],
-              [
-                "Terminal or meeting point",
-                "Add the terminal and a practical pickup gate or meeting landmark.",
-              ],
-              [
-                "Onward address",
-                "Name the hotel, home, station, city area or other drop location.",
-              ],
-              [
-                "Passengers and luggage",
-                "Mention group size, luggage or any special travel requirements.",
-              ],
-            ].map(([title, copy], i) => (
-              <article
-                key={title}
-                className="border-b border-slate-200 py-2.5"
-              >
-                <h3 className="text-sm font-black">{title}</h3>
-                <p className="mt-1 text-xs leading-5 text-slate-600">{copy}</p>
+      <section className="bg-[#f4f7fb] py-7 sm:py-9">
+        <div className="container-wide">
+          <div className="max-w-3xl">
+            <p className="eyebrow text-amber-700">Airport travel guide</p>
+            <h2 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
+              Plan a pickup, drop or onward journey at {a.name}
+            </h2>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {airportNarrative.map((part) => (
+              <article key={part.heading} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+                <h3 className="text-base font-black tracking-tight">{part.heading}</h3>
+                <div className="mt-2 space-y-2 text-sm leading-6 text-slate-600">
+                  {part.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                </div>
               </article>
             ))}
           </div>
         </div>
-        <aside className="flex flex-col justify-between rounded-[26px] bg-[#071a2f] p-5 text-white sm:p-7">
-          <div>
-            <p className="eyebrow text-amber-300">Arrival or departure?</p>
-            <h2 className="mt-3 text-2xl font-black sm:text-3xl">
-              Help the pickup
-              <br />
-              plan come together.
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-slate-300">
-              The team needs different details depending on whether the cab is
-              meeting a flight or taking you to one.
-            </p>
-          </div>
-          <div className="mt-6 space-y-5">
-            <div className="border-b border-white/15 pb-4">
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-300">
-                For arrivals
-              </span>
-              <p className="mt-2 text-sm font-bold">
-                Flight · terminal · meeting point
-              </p>
-              <p className="mt-1 text-xs leading-5 text-slate-300">
-                Add the onward address and enough context for the team to
-                discuss the pickup.
-              </p>
-            </div>
-            <div className="pb-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-300">
-                For departures
-              </span>
-              <p className="mt-2 text-sm font-bold">
-                Pickup address · flight time
-              </p>
-              <p className="mt-1 text-xs leading-5 text-slate-300">
-                Share when you want to leave and when your flight departs.
-              </p>
-            </div>
-          </div>
-          <p className="mt-5 text-xs leading-5 text-slate-400">
-            Always confirm current terminal and airport pickup rules before
-            travel.
-          </p>
-        </aside>
       </section>
 
       <section className="container-wide grid gap-6 py-6 sm:py-8 lg:grid-cols-2">

@@ -251,15 +251,6 @@ export default async function LandingPage({ params }: Props) {
         },
       ]
     : [];
-  const routeNarrative = route
-    ? [
-        `A private cab enquiry between ${route.from} and ${route.to} should describe the entire door-to-door trip. Enter the pickup locality, building or meeting point in ${route.from}, then give the actual drop address in ${route.to}. This is especially useful when the journey begins at a home or hotel and ends at a hospital, office, campus, railway station, airport or a specific family address. City names alone do not tell the team which roads or access points your trip requires.`,
-        `${linkedCities.find((city) => city.name === route.from)?.detail ?? `The trip begins in ${route.from}.`} ${linkedCities.find((city) => city.name === route.to)?.detail ?? `The destination is ${route.to}.`} If your pickup or drop is outside the central area, include the neighbourhood and a nearby landmark. Note any appointment or arrival deadline and allow your own time buffer for traffic, road conditions and planned stops. This page does not publish a guaranteed distance or travel duration for the address-specific route.`,
-        `Choose the arrangement that matches your plan. A one-way enquiry covers the requested direction; a return enquiry must include when and where you want to travel back. If you expect the cab to wait, make several stops or stay overnight, explain that before accepting a quote. The complete route, waiting, tolls, driver allowance and any additional terms should be confirmed directly with Vistar Cabs so that both sides are discussing the same itinerary.`,
-        `Vehicle suitability depends on the passenger count, luggage, route and date. A small party with light bags may ask about a compact car, while a family or group may need more seating or baggage space. Tell the team about mobility requirements, child passengers and bulky items; do not assume a vehicle or capacity until it has been confirmed as available for your trip.`,
-        `For a railway or airport connection, include the train or flight number, schedule, terminal or meeting point and the onward address. ${linkedAirports.length ? `Related airport connections include ${linkedAirports.map((airport) => `${airport.name} (${airport.code})`).join(", ")}.` : "If an airport is part of the trip, name it precisely and include the terminal and flight schedule."} Verify current airport or railway pickup instructions with the operator. The enquiry form records a request and prepares a WhatsApp message; press Send there, then wait for Vistar Cabs to confirm availability, vehicle, fare and pickup arrangements.`,
-      ]
-    : [];
   const serviceNarrative = service
     ? service.slug === "outstation-cab-service"
       ? [
@@ -505,14 +496,15 @@ export default async function LandingPage({ params }: Props) {
       )}
       {service && (
         <section className="container-wide pb-7 sm:pb-9">
-          <details className="border-t border-slate-200 py-2">
-            <summary className="min-h-11 cursor-pointer py-2 text-sm font-extrabold text-blue-900">
-              Read more about {service.title.toLowerCase()}
-            </summary>
-            <article className="grid gap-3 border-t border-slate-100 py-3 md:grid-cols-2">
-              {serviceNarrative.map((paragraph) => <p key={paragraph} className="text-xs leading-6 text-slate-600">{paragraph}</p>)}
-            </article>
-          </details>
+          <div className="border-t border-slate-200 pt-4">
+            <p className="eyebrow text-amber-700">Detailed service guide</p>
+            <h2 className="mt-1 text-xl font-black tracking-tight sm:text-2xl">Planning {service.title.toLowerCase()}</h2>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {serviceNarrative.map((paragraph) => (
+                <p key={paragraph} className="text-sm leading-6 text-slate-600">{paragraph}</p>
+              ))}
+            </div>
+          </div>
         </section>
       )}
       {route && linkedCities.find((item) => item.name === route.to) && (
@@ -538,16 +530,14 @@ export default async function LandingPage({ params }: Props) {
                 arranged for your date and share the fare before you decide.
               </p>
             </div>
-            <details className="mt-3 max-w-4xl">
-              <summary className="min-h-11 cursor-pointer py-2 text-sm font-extrabold text-blue-900">
-                Read the full route guide
-              </summary>
-              <div className="grid gap-5 border-t border-slate-200 py-3 md:grid-cols-2">
-                {routeNarrative.map((paragraph) => (
-                  <p key={paragraph} className="text-xs leading-6 text-slate-600">{paragraph}</p>
-                ))}
-              </div>
-            </details>
+            <article className="mt-4 max-w-4xl rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+              <p className="eyebrow text-amber-700">Route overview</p>
+              <h3 className="mt-1 text-base font-black">{route.from} to {route.to}: route and trip context</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{route.details}</p>
+              <p className="mt-2 text-xs leading-5 text-slate-500">
+                Enter the exact pickup and drop addresses, since distance and travel time vary with the selected locations, traffic, weather and stops. Share the trip date and any arrival deadline so Vistar Cabs can review the request you have in mind.
+              </p>
+            </article>
             <div className="mt-5">
               <p className="eyebrow text-amber-700">Ways to plan this route</p>
               <h3 className="mt-1 text-xl font-black tracking-tight">

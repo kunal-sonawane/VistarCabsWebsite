@@ -22,6 +22,7 @@ import {
   airports,
   cities,
   cityContent,
+  cityLongForm,
   destinationGuides,
   routes,
 } from "@/lib/site";
@@ -310,37 +311,17 @@ export default async function CityPage({ params }: Props) {
       </section>
 
       {content && (
-        <section className="container-wide grid gap-6 py-8 sm:py-10 lg:grid-cols-2">
-          <div className="order-2 min-w-0 lg:order-1">
-            <p className="eyebrow text-amber-700">Cab services in {c.name}</p>
+        <section className="container-wide grid gap-6 py-7 sm:py-9 lg:grid-cols-[.85fr_1.15fr]">
+          <div className="min-w-0">
+            <p className="eyebrow text-amber-700">Explore {c.name}</p>
             <h2 className="mt-1 text-xl font-black tracking-tight sm:text-2xl">
               {content.heading}
             </h2>
-            <p className="mt-2 text-xs leading-5 text-slate-600">
+            <p className="mt-2 text-sm leading-6 text-slate-600">
               {content.overview}
             </p>
-            <ul className="mt-3 hidden gap-x-5 lg:grid lg:grid-cols-2">
-              {content.services.map((service) => (
-                <li key={service.title} className="border-b border-slate-200 py-2.5">
-                  <h3 className="text-sm font-extrabold">{service.title}</h3>
-                  <p className="mt-1 text-xs leading-5 text-slate-600">{service.copy}</p>
-                </li>
-              ))}
-            </ul>
-            <details className="mt-2 lg:hidden">
-              <summary className="min-h-11 cursor-pointer border-b border-slate-200 py-2 text-xs font-extrabold text-blue-900">
-                Cab services and trip options
-              </summary>
-              <ul className="grid gap-x-4 sm:grid-cols-2">
-                {content.services.map((service) => (
-                  <li key={service.title} className="border-b border-slate-200 py-2">
-                    <h3 className="text-xs font-extrabold">{service.title}</h3>
-                    <p className="mt-1 text-[11px] leading-4 text-slate-600">{service.copy}</p>
-                  </li>
-                ))}
-              </ul>
-            </details>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <h3 className="mt-5 text-sm font-black">Areas and destinations</h3>
+            <div className="mt-2 flex flex-wrap gap-2">
               {places.map((place) => (
                 place.href ? (
                   <Link key={place.name} href={place.href} className="inline-flex min-h-9 items-center rounded-full border border-slate-200 px-3 py-1.5 text-[11px] font-bold text-blue-800 hover:border-amber-400">
@@ -354,7 +335,7 @@ export default async function CityPage({ params }: Props) {
               ))}
             </div>
           </div>
-          <div className="order-1 lg:order-2">
+          <div className="min-w-0">
             <NearbyPlaces
               inline
               citySlug={c.slug}
@@ -365,29 +346,30 @@ export default async function CityPage({ params }: Props) {
         </section>
       )}
 
-      {content?.editorialSections?.length ? (
-        <details className="container-wide border-t border-slate-200 py-3">
-          <summary className="min-h-11 cursor-pointer py-2 text-sm font-extrabold text-blue-900">
-            More local travel notes for {c.name}
-          </summary>
-          <div className="grid gap-5 pb-4 pt-2 lg:grid-cols-2">
-            {content.editorialSections.map((group) => (
-              <section key={group.title} className="min-w-0 rounded-2xl bg-[#f4f7fb] p-4 sm:p-5">
-                <p className="eyebrow text-amber-700">{group.eyebrow}</p>
-                <h2 className="mt-1 text-lg font-black">{group.title}</h2>
-                <p className="mt-1 text-xs leading-5 text-slate-600">{group.intro}</p>
-                <ul className="mt-2 grid gap-x-4 sm:grid-cols-2">
-                  {group.items.map((item) => (
-                    <li key={item.title} className="border-b border-slate-200 py-2">
-                      <h3 className="text-xs font-extrabold">{item.title}</h3>
-                      <p className="mt-1 text-[11px] leading-4 text-slate-600">{item.copy}</p>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
+      {cityLongForm[c.slug]?.length ? (
+        <section className="bg-[#f4f7fb] py-7 sm:py-9">
+          <div className="container-wide">
+            <div className="max-w-3xl">
+              <p className="eyebrow text-amber-700">{c.name} travel guide</p>
+              <h2 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
+                Local cabs, road trips and places to visit
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Explore practical notes for planning a journey in and around {c.name}. Use the exact pickup, destination and stop order when you send an enquiry.
+              </p>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {cityLongForm[c.slug].map((group) => (
+                <article key={group.heading} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+                  <h3 className="text-base font-black tracking-tight sm:text-lg">{group.heading}</h3>
+                  <div className="mt-2 space-y-2 text-sm leading-6 text-slate-600">
+                    {group.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
-        </details>
+        </section>
       ) : null}
       {linkedAirports.length > 0 && (
         <section className="container-wide py-7 sm:py-9">
