@@ -3382,7 +3382,7 @@ function Reviews({
             onChange={(v) =>
               setReview({ ...review, status: v as ReviewDraft["status"] })
             }
-            options={["draft", "scheduled", "published", "archived"]}
+            options={["draft", "published", "archived"]}
           />
           <label className="flex items-start gap-2 text-xs leading-5 sm:col-span-2">
             <input

@@ -62,7 +62,7 @@ Open `http://localhost:3000`. To check on a phone connected to the same Wi-Fi, s
 - Admin sign-in: `/vistar-console`
 - Health check: `http://localhost:5000/api/health`
 - Visitor instructions: [Website visitor guide](docs/WEBSITE_USER_GUIDE.md)
-- Owner admin instructions: [Admin panel guide](docs/ADMIN_PANEL_GUIDE.md)
+- Project and admin guide: [Admin panel guide](docs/ADMIN_PANEL_GUIDE.md)
 - SEO editor instructions: [SEO editor guide](docs/SEO_EDITOR_GUIDE.md)
 
 ## Checks before a demo
