@@ -131,11 +131,63 @@ Archived CMS pages are hidden from visitors but kept as records. Draft and archi
 
 Open the page editor's **Revision history**, review who saved each version and when, then choose **Restore this version** for the version you want. The current version is preserved in history before the restore. Preview and check its publication status afterward; restoring content does not automatically mean you should publish it.
 
-## 7. SEO settings, campaigns and public site settings
+## 7. SEO editor: practical page-by-page workflow
 
-### SEO settings
+The **SEO workspace** is for improving how existing pages are understood by search engines and visitors. It does not promise a first-page position. Search results can take time to update, and rankings depend on many factors outside the admin.
 
-Choose an existing page path and provide a clear search title and description that match that page. Keep the canonical path on the correct existing URL. `noindex` asks search engines not to show the page in search results; do not turn it on for a public page without a reason. The focus phrase is an editing aid and is not shown as a guarantee of ranking. SEO settings cannot guarantee indexing, traffic or a ranking position.
+### Work on one URL
+
+1. Open **SEO workspace** and find the exact URL in **SEO workbench · existing website URLs**. Select **Choose for SEO edit** to load the saved settings into the form. Use the arrow beside it to open the public page in another tab and read it first.
+2. Set **Focus phrase** to the main real search need for that page, for example `Nashik local cab service`. Add a few closely related phrases in **Related keywords**. These are editorial planning fields; Google does not use a hidden keyword field to rank the page. Do not repeat phrases unnaturally.
+3. Write a distinct **Search title** that names the service or destination and matches the page. Keep it concise (the form limit is 70 characters). Write a truthful **Search description** that explains the page and gives a visitor a reason to open it (the form accepts 30–320 characters). Google may choose different text for a result.
+4. Leave **Canonical path** blank in normal cases. Blank means “this page is its own preferred URL.” Only enter another existing URL when a site owner or technical SEO has confirmed this page is a duplicate and specified the preferred URL.
+5. Leave **Mark noindex** off for pages intended to appear in Google. Turning it on asks search engines not to show the page. If you are not sure, do not change it; ask the owner/technical contact.
+6. Add **Page-specific SEO notes** for the next editor. These notes stay in the admin and are not shown on the public site. Useful notes include the target visitor, pages to link to, copy/image still needed, a Search Console query to check, and the date or reason for the next review.
+7. Select **Save SEO settings** or **Update SEO settings**. This saves the metadata override to the database and applies it on the public URL immediately; SEO metadata has no Draft/Publish switch. Open the same URL in a new tab and check it. Search engines update their stored result later, not necessarily at once.
+
+### Change a visible headline, paragraph or image
+
+The SEO form changes search metadata; it does not change the text or image visitors see on the page. For visible content:
+
+1. Open **Website content** and find the same URL.
+2. Select **Edit content**. Change the page headline (H1), introduction, section headings/body, FAQs or hero image only in the relevant fields. Keep facts accurate and helpful; do not add invented fares, guarantees, opening hours, facilities or customer claims.
+3. Use **Preview** to review the copy. A preview is a content preview, so also open the public page to check the full design.
+4. Choose **Draft** to save privately while someone reviews it. Choose **Published** and save to put the page-content changes live. A scheduled item goes live on its scheduled date. After publishing, open the page on a phone and computer and check links, image crop, headings and text.
+5. If a visible image is wrong, select an appropriate photo from **Photo library** and write alt text describing what is actually in the image. Do not stuff keywords into alt text.
+
+If the page content is already correct and only its search title/description need adjustment, use the SEO workspace alone. If both need work, edit each section and verify both the public page and search metadata.
+
+### Worked example: `/cities/nashik`
+
+Open the Nashik page and decide what a visitor needs: for example, arranging a local cab, a station pickup, or a trip to a named nearby destination. The page already has its fixed URL; do not create another URL for the same page.
+
+| Admin field | Example work for this page |
+| --- | --- |
+| Focus phrase | `Nashik local cab service` |
+| Related keywords | `Nashik airport taxi, Nashik Road station cab, Nashik sightseeing cab` |
+| Search title | Write a short, accurate title such as `Nashik Cab Service: Local and Outstation Trips` (adjust to fit the title limit and brand style). |
+| Search description | Summarize the real services on this page and invite the visitor to enquire. Do not promise a fare, vehicle or availability that has not been confirmed. |
+| Visible headline | Change in **Website content → `/cities/nashik` → Edit content**, not in the metadata form. |
+| Main image | Choose a suitable Nashik image in the page editor; describe the actual image in alt text. The guide illustration below is an example image, not a required replacement. |
+| Page-specific SEO notes | Example: `Review Nashik station pickup wording; link to the Nashik–Pune route; check Search Console queries after 30 days; confirm venue details before adding them.` |
+
+![Nashik Ramkund example image](/images/cities/nashik-ramkund-clear.jpg)
+
+After saving the SEO settings, check `/cities/nashik` on the public website. After changing visible page content, make sure the page is Published, save it, and check the same URL again. The save updates the website; search-result changes wait for Google to crawl and process the page. For reporting, **Performance** shows recorded enquiries; it does not show Google impressions or ranking positions. Connect the site to **Google Search Console** to monitor those search metrics and submit/check the sitemap.
+
+### Blogs, internal links and promotion
+
+- Use **Blog posts** for new editorial articles. Add one clear topic, headline, useful body, accurate summary, distinct SEO title/description, a suitable cover image and descriptive alt text. Save as **Draft** for review; set **Published** when approved. Check the resulting `/blogs/<slug>` URL.
+- Link related pages using real site paths, such as `/cities/nashik` or a verified route URL. A link should help the reader continue their task. Check that links open the correct page.
+- **Promotional banners** are on-site placements. Google Ads and Meta advertising, budgets and campaign results are managed in those platforms. The admin links to them; it does not launch or measure paid ads.
+- Search Console is an external Google service. The current admin links to it but does not yet connect its search-query/impression/ranking data to the Performance dashboard. Ask the technical owner to configure verified property access and an API connection if those metrics need to appear inside this admin.
+- Off-page work such as earning legitimate mentions and links, local business listing accuracy, and outreach is performed in the relevant external services. Do not buy spam links or publish fake reviews.
+
+### Good review routine
+
+Keep a short note of the page URL, what changed, why it helps the visitor, and what to measure. Revisit performance after enough time for search data to accumulate. If the page loses traffic or enquiries, compare the page and its search queries before editing again. Avoid changing URLs, canonical paths or noindex settings without technical review.
+
+## 8. Campaigns and public site settings
 
 ### Site campaigns
 

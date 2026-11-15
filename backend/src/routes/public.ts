@@ -7,8 +7,25 @@ import SiteSettings from "../models/SiteSettings";
 import MediaAsset from "../models/MediaAsset";
 import PageContentOverride from "../models/PageContentOverride";
 import SiteCampaign from "../models/SiteCampaign";
+import BlogPost from "../models/BlogPost";
 
 const router = Router();
+
+router.get("/blogs", async (_req, res, next) => {
+  try {
+    const items = await BlogPost.find({ status: "published" }).sort({ publishedAt: -1 }).select("-updatedBy").limit(200).lean();
+    res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+    res.json({ ok: true, items });
+  } catch (error) { next(error); }
+});
+router.get("/blogs/:slug", async (req, res, next) => {
+  try {
+    const item = await BlogPost.findOne({ slug: req.params.slug, status: "published" }).select("-updatedBy").lean();
+    if (!item) { res.status(404).json({ ok: false, message: "Blog post not found." }); return; }
+    res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+    res.json({ ok: true, item });
+  } catch (error) { next(error); }
+});
 
 router.get("/campaigns", async (req, res, next) => {
   try {
@@ -133,7 +150,7 @@ router.get("/seo", async (req, res, next) => {
       return;
     }
     const row = await SeoOverride.findOne({ path })
-      .select("path title description canonicalPath noindex focusPhrase")
+        .select("path title description canonicalPath noindex focusPhrase targetKeywords")
       .lean();
     res.setHeader(
       "Cache-Control",
@@ -153,7 +170,7 @@ router.get("/reviews", async (_req, res, next) => {
     })
       .select("customerName quote rating tripLabel publishedAt")
       .sort({ publishedAt: -1 })
-      .limit(30)
+        .limit(14)
       .lean();
     res.setHeader(
       "Cache-Control",

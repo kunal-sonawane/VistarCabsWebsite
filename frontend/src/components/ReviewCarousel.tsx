@@ -7,7 +7,7 @@ export type ReviewCardItem = {
   quote: string;
   source?: string;
   tripLabel?: string;
-  rating?: number;
+  rating?: number | null;
 };
 
 export default function ReviewCarousel({

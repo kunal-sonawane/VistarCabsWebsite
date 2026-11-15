@@ -7,20 +7,21 @@ import Header from "@/components/Header";
 import SiteFooter from "@/components/SiteFooter";
 import QuickTripEnquiry from "@/components/QuickTripEnquiry";
 import { blogPosts, getBlogPost } from "@/lib/blogs";
-import { metadataWithSeoOverride } from "@/lib/cms";
+import { getPublishedBlog, metadataWithSeoOverride } from "@/lib/cms";
 
 type Props = { params: Promise<{ slug: string }> };
 export function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }));
 }
+export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = getBlogPost(slug);
+  const post = (await getPublishedBlog(slug)) || getBlogPost(slug);
   if (!post) return {};
   const path = `/blogs/${post.slug}`;
   return metadataWithSeoOverride(path, {
-    title: post.title,
-    description: post.summary,
+    title: (post as any).metaTitle || post.title,
+    description: (post as any).metaDescription || post.summary,
     alternates: { canonical: path },
     openGraph: {
       title: post.title,
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogArticle({ params }: Props) {
   const { slug } = await params;
-  const post = getBlogPost(slug);
+  const post = (await getPublishedBlog(slug)) || getBlogPost(slug);
   if (!post) notFound();
   return (
     <main className="min-h-screen bg-white text-slate-900">

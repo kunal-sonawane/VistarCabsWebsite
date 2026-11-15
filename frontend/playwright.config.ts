@@ -13,10 +13,14 @@ export default defineConfig({
     baseURL: "http://localhost:52322",
     headless: true,
   },
-  webServer: {
-    command: "npm run dev -- --hostname 127.0.0.1 --port 52322",
-    url: "http://localhost:52322",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  ...(process.env.PLAYWRIGHT_SKIP_WEBSERVER
+    ? {}
+    : {
+        webServer: {
+          command: "npm run dev -- --hostname 127.0.0.1 --port 52322",
+          url: "http://localhost:52322",
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+      }),
 });

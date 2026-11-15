@@ -8,6 +8,7 @@ export type SeoRecord = {
   canonicalPath?: string;
   noindex?: boolean;
   focusPhrase?: string;
+  targetKeywords?: string[];
 };
 export type CmsSection = {
   heading: string;
@@ -124,6 +125,20 @@ export type SiteCampaignRecord = {
   endsOn?: string;
   priority: number;
 };
+export type BlogPostRecord = {
+  slug: string; title: string; summary: string; metaTitle: string;
+  metaDescription: string; image: string; imageAlt: string; publishedLabel: string;
+  sections: Array<{ heading: string; paragraphs: string[] }>;
+  faqs: Array<{ question: string; answer: string }>; publishedAt?: string;
+};
+export async function getPublishedBlogs(): Promise<BlogPostRecord[]> {
+  const result = await safeJson<{ items: BlogPostRecord[] }>(`${getApiUrl()}/api/public/blogs`);
+  return result?.items || [];
+}
+export async function getPublishedBlog(slug: string): Promise<BlogPostRecord | null> {
+  const result = await safeJson<{ item: BlogPostRecord }>(`${getApiUrl()}/api/public/blogs/${encodeURIComponent(slug)}`);
+  return result?.item || null;
+}
 export async function getActiveCampaigns(
   placement: "homepage" = "homepage",
 ): Promise<SiteCampaignRecord[]> {
@@ -137,7 +152,7 @@ export async function getPublicReviews(): Promise<
   Array<{
     customerName: string;
     quote: string;
-    rating: number;
+    rating: number | null;
     tripLabel: string;
     publishedAt?: string;
   }>
@@ -146,7 +161,7 @@ export async function getPublicReviews(): Promise<
     items: Array<{
       customerName: string;
       quote: string;
-      rating: number;
+      rating: number | null;
       tripLabel: string;
       publishedAt?: string;
     }>;

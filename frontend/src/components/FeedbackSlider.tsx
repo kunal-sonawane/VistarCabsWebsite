@@ -7,12 +7,22 @@ import { workbookReviews } from "@/lib/workbookReviews";
 
 export default async function FeedbackSlider() {
   const approved = await getPublicReviews();
-  const reviews: ReviewCardItem[] = approved.length
-    ? approved.map((review) => ({
-        ...review,
-        source: "Vistar Cabs customer feedback",
-      }))
-    : workbookReviews;
+  // New database reviews lead the carousel. Keep the legacy approved reviews
+  // behind them until the 14 visible slots are full; older database reviews
+  // remain saved in Admin and simply fall outside the public window.
+  const seen = new Set<string>();
+  const reviews: ReviewCardItem[] = [
+    ...approved.map((review) => ({ ...review, source: "Vistar Cabs customer feedback" })),
+    ...workbookReviews,
+  ]
+    .filter((review) => {
+      const key = `${review.customerName.trim().toLowerCase()}|${review.quote.trim().toLowerCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 14)
+    .map((review) => ({ ...review }));
   return (
     <section
       id="feedback"
@@ -38,9 +48,7 @@ export default async function FeedbackSlider() {
           </div>
           <div className="flex items-center gap-2 text-[11px] text-slate-300">
             <ShieldCheck size={17} className="text-emerald-300" />{" "}
-            {approved.length
-              ? "Approved customer feedback"
-              : "Source: supplied customer review sheet"}
+            Newest first · up to 14 reviews
           </div>
         </div>
         {reviews.length > 0 ? (

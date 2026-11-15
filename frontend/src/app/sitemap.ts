@@ -33,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const routePaths = routes.map((r) => `/${r.slug}`);
   const airportPaths = airports.map((a) => `/airports/${a.slug}`);
   let cmsPaths: string[] = [];
+  let dynamicBlogPaths: string[] = [];
   try {
     const response = await fetch(`${getApiUrl()}/api/public/pages`, {
       cache: "no-store",
@@ -45,10 +46,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         : [];
     }
   } catch {}
+  try {
+    const response = await fetch(`${getApiUrl()}/api/public/blogs`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(1600),
+    });
+    if (response.ok) {
+      const body = await response.json();
+      dynamicBlogPaths = Array.isArray(body.items)
+        ? body.items.map((post: { slug: string }) => `/blogs/${post.slug}`)
+        : [];
+    }
+  } catch {}
   return [
     ...new Set([
       ...staticPaths,
       ...blogPaths,
+      ...dynamicBlogPaths,
       ...cityPaths,
       ...placePaths,
       ...destinationPaths,

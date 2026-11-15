@@ -16,7 +16,8 @@ import PageContentOverride from "../models/PageContentOverride";
 import SiteCampaign from "../models/SiteCampaign";
 import PageRevision from "../models/PageRevision";
 import DutySlip from "../models/DutySlip";
-import { authenticatedRole, requireAdmin, requireOwner } from "./admin";
+import BlogPost from "../models/BlogPost";
+import { authenticatedRole, requireAdmin, requireOwner, requireSeoEditor } from "./admin";
 
 const router = Router();
 const phone = z
@@ -97,13 +98,15 @@ const seoSchema = z
     canonicalPath: z.string().trim().max(200).default(""),
     noindex: z.boolean().default(false),
     focusPhrase: z.string().trim().max(100).default(""),
+    targetKeywords: z.array(z.string().trim().min(2).max(80)).max(12).default([]),
+    seoNotes: z.string().trim().max(1500).default(""),
   })
   .strict();
 const reviewSchema = z
   .object({
     customerName: z.string().trim().min(2).max(100),
     quote: z.string().trim().min(15).max(1200),
-    rating: z.number().int().min(1).max(5),
+    rating: z.number().int().min(1).max(5).nullable(),
     tripLabel: z.string().trim().max(120).default(""),
     consentConfirmed: z
       .boolean()
@@ -111,6 +114,19 @@ const reviewSchema = z
     status: z.enum(["draft", "published", "archived"]).default("draft"),
   })
   .strict();
+const blogSchema = z.object({
+  slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(120),
+  title: z.string().trim().min(5).max(140),
+  summary: z.string().trim().min(30).max(500),
+  metaTitle: z.string().trim().min(3).max(70),
+  metaDescription: z.string().trim().min(30).max(320),
+  image: z.string().trim().max(300).default("/images/blogs.jpg"),
+  imageAlt: z.string().trim().min(5).max(180),
+  publishedLabel: z.string().trim().max(80).default("Vistar Cabs · travel guide"),
+  sections: z.array(z.object({ heading: z.string().trim().min(2).max(140), paragraphs: z.array(z.string().trim().min(10).max(5000)).max(10) })).min(1).max(20),
+  faqs: z.array(z.object({ question: z.string().trim().min(5).max(240), answer: z.string().trim().min(5).max(2000) })).max(20).default([]),
+  status: z.enum(["draft", "published", "archived"]).default("draft"),
+}).strict();
 const customerSchema = z
   .object({
     name: z.string().trim().min(2).max(100),
@@ -494,7 +510,7 @@ router.get("/analytics", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.get("/page-content", requireAdmin, async (_req, res, next) => {
+router.get("/page-content", requireSeoEditor, async (_req, res, next) => {
   try {
     res.json({
       ok: true,
@@ -504,7 +520,7 @@ router.get("/page-content", requireAdmin, async (_req, res, next) => {
     next(error);
   }
 });
-router.put("/page-content", requireAdmin, async (req, res, next) => {
+router.put("/page-content", requireSeoEditor, async (req, res, next) => {
   try {
     const parsed = managedPageSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -561,7 +577,7 @@ router.put("/page-content", requireAdmin, async (req, res, next) => {
     next(error);
   }
 });
-router.delete("/page-content/:id", requireAdmin, async (req, res, next) => {
+router.delete("/page-content/:id", requireSeoEditor, async (req, res, next) => {
   try {
     if (!idOr404(req.params.id, res)) return;
     const row = await PageContentOverride.findByIdAndDelete(req.params.id);
@@ -584,7 +600,7 @@ router.delete("/page-content/:id", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.get("/page-revisions", requireAdmin, async (req, res, next) => {
+router.get("/page-revisions", requireSeoEditor, async (req, res, next) => {
   try {
     const kind = req.query.kind === "cms-page" ? "cms-page" : "existing-page";
     const reference =
@@ -607,7 +623,7 @@ router.get("/page-revisions", requireAdmin, async (req, res, next) => {
 });
 router.post(
   "/page-revisions/:id/restore",
-  requireAdmin,
+  requireSeoEditor,
   async (req, res, next) => {
     try {
       if (!idOr404(req.params.id, res)) return;
@@ -693,6 +709,43 @@ router.post(
     }
   },
 );
+
+router.get("/blogs", requireSeoEditor, async (_req, res, next) => {
+  try {
+    res.json({ ok: true, items: await BlogPost.find().sort({ updatedAt: -1 }).limit(500).lean() });
+  } catch (error) { next(error); }
+});
+router.post("/blogs", requireSeoEditor, async (req, res, next) => {
+  try {
+    const parsed = blogSchema.safeParse(req.body);
+    if (!parsed.success) { res.status(400).json({ ok: false, message: "Check the blog fields, content and image details.", errors: parsed.error.flatten().fieldErrors }); return; }
+    const row = await BlogPost.create({ ...parsed.data, publishedAt: parsed.data.status === "published" ? new Date() : null, updatedBy: actor(req) });
+    audit(req, "create", "blog-post", String(row.id), row.slug);
+    res.status(201).json({ ok: true, item: row });
+  } catch (error) { if (duplicateSafe(error, res)) return; next(error); }
+});
+router.put("/blogs/:id", requireSeoEditor, async (req, res, next) => {
+  try {
+    if (!idOr404(req.params.id, res)) return;
+    const parsed = blogSchema.safeParse(req.body);
+    if (!parsed.success) { res.status(400).json({ ok: false, message: "Check the blog fields, content and image details.", errors: parsed.error.flatten().fieldErrors }); return; }
+    const previous = await BlogPost.findById(req.params.id);
+    if (!previous) { res.status(404).json({ ok: false, message: "Blog post not found." }); return; }
+    if (parsed.data.slug !== previous.slug) { res.status(400).json({ ok: false, message: "A published blog URL is fixed after creation." }); return; }
+    const row = await BlogPost.findByIdAndUpdate(req.params.id, { ...parsed.data, publishedAt: parsed.data.status === "published" ? (previous.publishedAt || new Date()) : null, updatedBy: actor(req) }, { new: true, runValidators: true });
+    audit(req, "update", "blog-post", String(row!.id), row!.slug);
+    res.json({ ok: true, item: row });
+  } catch (error) { next(error); }
+});
+router.delete("/blogs/:id", requireSeoEditor, async (req, res, next) => {
+  try {
+    if (!idOr404(req.params.id, res)) return;
+    const row = await BlogPost.findByIdAndUpdate(req.params.id, { status: "archived", updatedBy: actor(req) }, { new: true });
+    if (!row) { res.status(404).json({ ok: false, message: "Blog post not found." }); return; }
+    audit(req, "archive", "blog-post", String(row.id), row.slug);
+    res.json({ ok: true });
+  } catch (error) { next(error); }
+});
 
 router.get("/campaigns", requireAdmin, async (_req, res, next) => {
   try {
@@ -790,7 +843,7 @@ router.delete("/campaigns/:id", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.get("/pages", requireAdmin, async (_req, res, next) => {
+router.get("/pages", requireSeoEditor, async (_req, res, next) => {
   try {
     res.json({
       ok: true,
@@ -804,36 +857,10 @@ router.get("/pages", requireAdmin, async (_req, res, next) => {
     next(error);
   }
 });
-router.post("/pages", requireAdmin, async (req, res, next) => {
-  try {
-    const parsed = pageSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res
-        .status(400)
-        .json({
-          ok: false,
-          message: "Check the page fields and limits.",
-          errors: parsed.error.flatten().fieldErrors,
-        });
-      return;
-    }
-    const publishAt = parsed.data.publishAt
-      ? new Date(`${parsed.data.publishAt}T00:00:00+05:30`)
-      : null;
-    const row = await ContentPage.create({
-      ...parsed.data,
-      publishAt,
-      publishedAt: parsed.data.status === "published" ? new Date() : publishAt,
-      updatedBy: actor(req),
-    });
-    audit(req, "create", "content-page", String(row.id), row.slug);
-    res.status(201).json({ ok: true, item: row });
-  } catch (error) {
-    if (duplicateSafe(error, res)) return;
-    next(error);
-  }
+router.post("/pages", requireSeoEditor, async (_req, res) => {
+  res.status(403).json({ ok: false, message: "Creating new website pages is disabled. Update an existing page or publish a blog post." });
 });
-router.put("/pages/:id", requireAdmin, async (req, res, next) => {
+router.put("/pages/:id", requireSeoEditor, async (req, res, next) => {
   try {
     if (!idOr404(req.params.id, res)) return;
     const parsed = pageSchema.safeParse(req.body);
@@ -896,7 +923,7 @@ router.put("/pages/:id", requireAdmin, async (req, res, next) => {
   }
 });
 
-router.get("/seo", requireAdmin, async (_req, res, next) => {
+router.get("/seo", requireSeoEditor, async (_req, res, next) => {
   try {
     res.json({
       ok: true,
@@ -906,7 +933,7 @@ router.get("/seo", requireAdmin, async (_req, res, next) => {
     next(error);
   }
 });
-router.put("/seo", requireAdmin, async (req, res, next) => {
+router.put("/seo", requireSeoEditor, async (req, res, next) => {
   try {
     const parsed = seoSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -936,7 +963,7 @@ router.put("/seo", requireAdmin, async (req, res, next) => {
     next(error);
   }
 });
-router.delete("/seo/:id", requireAdmin, async (req, res, next) => {
+router.delete("/seo/:id", requireSeoEditor, async (req, res, next) => {
   try {
     if (!idOr404(req.params.id, res)) return;
     const row = await SeoOverride.findByIdAndDelete(req.params.id);
@@ -960,6 +987,22 @@ router.get("/reviews", requireAdmin, async (_req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+router.post("/reviews/import-website", requireAdmin, async (req, res, next) => {
+  try {
+    const parsed = z.object({ items: z.array(z.object({ customerName: z.string().trim().min(2).max(100), quote: z.string().trim().min(15).max(1200) })).max(100) }).safeParse(req.body);
+    if (!parsed.success) { res.status(400).json({ ok: false, message: "The website review list is invalid." }); return; }
+    let created = 0;
+    let skipped = 0;
+    for (const [index, item] of parsed.data.items.entries()) {
+      const existing = await Testimonial.findOne({ customerName: item.customerName, quote: item.quote }).select("_id").lean();
+      if (existing) { skipped += 1; continue; }
+      await Testimonial.create({ ...item, rating: null, tripLabel: "", consentConfirmed: true, status: "published", publishedAt: new Date(Date.now() - index * 1000), updatedBy: actor(req) });
+      created += 1;
+    }
+    audit(req, "import", "review", "website-reviews", `${created} imported; ${skipped} already present`);
+    res.json({ ok: true, created, skipped, message: `${created} review(s) imported; ${skipped} matching record(s) were already in Admin.` });
+  } catch (error) { next(error); }
 });
 router.post("/reviews", requireAdmin, async (req, res, next) => {
   try {
@@ -1330,7 +1373,7 @@ router.put("/vehicles/:id", requireOwner, async (req, res, next) => {
   }
 });
 
-router.get("/settings", requireAdmin, async (_req, res, next) => {
+router.get("/settings", requireOwner, async (_req, res, next) => {
   try {
     const row = await SiteSettings.findOne({ key: "primary" }).lean();
     res.json({
@@ -1353,7 +1396,7 @@ router.get("/settings", requireAdmin, async (_req, res, next) => {
     next(error);
   }
 });
-router.put("/settings", requireAdmin, async (req, res, next) => {
+router.put("/settings", requireOwner, async (req, res, next) => {
   try {
     const parsed = settingsSchema.safeParse(req.body);
     if (!parsed.success) {

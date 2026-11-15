@@ -14,6 +14,8 @@ const SeoOverrideSchema = new Schema(
     canonicalPath: { type: String, default: "", trim: true, maxlength: 200 },
     noindex: { type: Boolean, default: false },
     focusPhrase: { type: String, default: "", trim: true, maxlength: 100 },
+    targetKeywords: { type: [String], default: [], validate: (items: string[]) => items.length <= 12 },
+    seoNotes: { type: String, default: "", trim: true, maxlength: 1500 },
     updatedBy: { type: String, default: "", maxlength: 80 },
   },
   { timestamps: true, versionKey: false },

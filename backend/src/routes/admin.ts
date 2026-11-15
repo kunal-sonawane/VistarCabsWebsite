@@ -117,6 +117,18 @@ export function requireOwner(req: Request, res: Response, next: NextFunction) {
   }
   next();
 }
+export function requireSeoEditor(req: Request, res: Response, next: NextFunction) {
+  const role = authenticatedRole(req);
+  if (!role) {
+    res.status(401).json({ ok: false, message: "Please sign in to access the admin panel." });
+    return;
+  }
+  if (role !== "seo") {
+    res.status(403).json({ ok: false, message: "This workspace is available to the SEO editor." });
+    return;
+  }
+  next();
+}
 function publicRecord(value: any) {
   return {
     id: String(value._id || value.id || ""),

@@ -4,7 +4,7 @@ const TestimonialSchema = new Schema(
   {
     customerName: { type: String, required: true, trim: true, maxlength: 100 },
     quote: { type: String, required: true, trim: true, maxlength: 1200 },
-    rating: { type: Number, required: true, min: 1, max: 5 },
+    rating: { type: Number, default: null, min: 1, max: 5 },
     tripLabel: { type: String, default: "", trim: true, maxlength: 120 },
     consentConfirmed: { type: Boolean, required: true, default: false },
     status: {

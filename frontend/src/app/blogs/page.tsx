@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import SiteFooter from "@/components/SiteFooter";
 import { blogPosts } from "@/lib/blogs";
 import { metadataWithSeoOverride } from "@/lib/cms";
+import { getPublishedBlogs } from "@/lib/cms";
 
 export const dynamic = "force-dynamic";
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,6 +19,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function BlogsPage() {
+  const managed = await getPublishedBlogs();
+  const managedSlugs = new Set(managed.map((post) => post.slug));
+  const posts = [...managed, ...blogPosts.filter((post) => !managedSlugs.has(post.slug))];
   return (
     <main className="min-h-screen bg-[#f4f7fb] text-slate-900">
       <section className="relative isolate overflow-hidden text-white">
@@ -54,7 +58,7 @@ export default async function BlogsPage() {
           </h2>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {blogPosts.map((post) => (
+          {posts.map((post) => (
             <article
               key={post.slug}
               className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
