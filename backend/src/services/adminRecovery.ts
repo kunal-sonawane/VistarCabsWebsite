@@ -9,7 +9,7 @@ import nodemailer from "nodemailer";
 
 const scrypt = promisify(scryptCallback);
 const DEFAULT_RECOVERY_EMAIL = "infovistarcabs@gmail.com";
-const DEFAULT_RECOVERY_PHONE = "+918485884417";
+const DEFAULT_RECOVERY_PHONE = "+918767613575";
 
 export async function hashPassword(password: string) {
   const salt = randomBytes(16);
