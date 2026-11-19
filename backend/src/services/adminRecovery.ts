@@ -125,5 +125,9 @@ export async function sendRecoveryCodes(emailCode: string, phoneCode: string) {
       signal: AbortSignal.timeout(10_000),
     },
   );
-  if (!response.ok) throw new Error("Twilio did not accept the recovery SMS.");
+  if (!response.ok) {
+    throw new Error(
+      `Twilio rejected the recovery SMS with HTTP ${response.status}.`,
+    );
+  }
 }
