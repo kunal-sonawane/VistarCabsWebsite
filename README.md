@@ -56,6 +56,12 @@ Open `http://localhost:3000`. To check on a phone connected to the same Wi-Fi, s
 - Never put MongoDB credentials or admin passwords in the frontend environment.
 - For a split frontend/API deployment, set `NEXT_PUBLIC_API_URL` in the frontend build environment to the API origin (for example, `https://api.example.com`, without `/api`) and set the API's `FRONTEND_ORIGIN` to the deployed website origin. Production browser requests use the Next.js `/api` rewrite so admin session cookies stay first-party. Redeploy the frontend after changing `NEXT_PUBLIC_API_URL`.
 
+## Hostinger Node.js deployment
+
+- Deploy the website from the `frontend` directory with build command `npm run build` and production start command `npm run start`. The start command runs `next start`; do not use the development command `npm run dev` for the live site.
+- Deploy the API separately from the `backend` directory with build command `npm run build` and start command `npm start`. Set `NODE_ENV=production`, MongoDB, admin session, CORS and recovery-provider values in the API's private environment.
+- The admin API URL is compiled into the frontend through `NEXT_PUBLIC_API_URL`. Set it before the frontend build when the API is not at the default `https://api.vistarcabs.com`, then redeploy the frontend.
+
 ## Useful pages
 
 - Homepage: `/`

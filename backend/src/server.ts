@@ -4,7 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import mongoose from "mongoose";
-import { connectDatabase } from "./config/db";
+import { connectDatabase, isDatabaseUnavailable } from "./config/db";
 import inquiriesRouter from "./routes/inquiries";
 import adminRouter from "./routes/admin";
 import adminResourcesRouter from "./routes/adminResources";
@@ -112,33 +112,56 @@ app.use(
     _next: express.NextFunction,
   ) => {
     console.error(err);
-    const status =
-      err &&
-      typeof err === "object" &&
-      "status" in err &&
-      typeof err.status === "number" &&
-      err.status >= 400 &&
-      err.status < 500
+    const unavailable = isDatabaseUnavailable(err);
+    const status = unavailable
+      ? 503
+      : err &&
+          typeof err === "object" &&
+          "status" in err &&
+          typeof err.status === "number" &&
+          err.status >= 400 &&
+          err.status < 500
         ? err.status
         : 500;
     res.status(status).json({
       ok: false,
-      message:
-        status === 403
+      message: unavailable
+        ? "Service data is temporarily unavailable while storage reconnects. Please retry shortly."
+        : status === 403
           ? "This website address is not allowed to access the API. Check FRONTEND_ORIGIN on the backend."
           : "Something went wrong. Please try again or contact Vistar Cabs directly.",
     });
   },
 );
-connectDatabase()
-  .then(() =>
-    app.listen(port, "0.0.0.0", () =>
-      console.log(
-        `Vistar Cabs API listening on ${port} with MongoDB connected`,
-      ),
-    ),
-  )
-  .catch((error) => {
-    console.error("API startup blocked because MongoDB is unavailable:", error);
-    process.exit(1);
-  });
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Vistar Cabs API listening on ${port}; checking MongoDB`);
+});
+
+async function connectDatabaseWithRetry() {
+  let delayMs = 1_000;
+  for (;;) {
+    try {
+      await connectDatabase();
+      console.log("Vistar Cabs API storage is ready");
+      return;
+    } catch (error) {
+      const name =
+        error && typeof error === "object" && "name" in error
+          ? String(error.name)
+          : "UnknownError";
+      const uri = process.env.MONGODB_URI;
+      const detail =
+        error instanceof Error ? error.message : "Unknown connection error.";
+      const safeDetail = uri
+        ? detail.split(uri).join("[MongoDB URI redacted]")
+        : detail;
+      console.error(
+        `MongoDB connection failed (${name}): ${safeDetail.slice(0, 240)}; retrying in ${Math.round(delayMs / 1000)} seconds.`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      delayMs = Math.min(delayMs * 2, 30_000);
+    }
+  }
+}
+
+void connectDatabaseWithRetry();

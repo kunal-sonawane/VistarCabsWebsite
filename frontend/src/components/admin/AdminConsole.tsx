@@ -54,6 +54,23 @@ type Section =
   | "settings"
   | "audit";
 const ADMIN_SESSION_SYNC_KEY = "vistar-admin-session-changed";
+function isTransientAuthError(error: unknown) {
+  return (
+    error instanceof Error &&
+    /cannot reach the admin service|did not respond in time|temporarily unavailable|request failed \((502|503|504)\)/i.test(
+      error.message,
+    )
+  );
+}
+async function retryTransientAuthRequest<T>(operation: () => Promise<T>) {
+  try {
+    return await operation();
+  } catch (error) {
+    if (!isTransientAuthError(error)) throw error;
+    await new Promise((resolve) => window.setTimeout(resolve, 700));
+    return operation();
+  }
+}
 function notifyAdminSessionChanged() {
   try {
     window.localStorage.setItem(
@@ -342,6 +359,7 @@ function Field({
   type = "text",
   placeholder = "",
   maxLength,
+  autoComplete,
   required = false,
   disabled = false,
 }: {
@@ -351,6 +369,7 @@ function Field({
   type?: string;
   placeholder?: string;
   maxLength?: number;
+  autoComplete?: string;
   required?: boolean;
   disabled?: boolean;
 }) {
@@ -361,6 +380,7 @@ function Field({
         className={inputClass}
         type={type}
         value={value}
+        autoComplete={autoComplete}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         maxLength={maxLength}
@@ -538,6 +558,7 @@ export default function AdminConsole() {
   const [imageAlt, setImageAlt] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const clearAdminWorkspace = useCallback(() => {
+    setLogin((current) => ({ ...current, password: "" }));
     setRows([]);
     setManagedRows([]);
     setMediaAssets([]);
@@ -597,13 +618,18 @@ export default function AdminConsole() {
       method = "GET",
       body?: unknown,
       headers: HeadersInit = {},
+      timeoutMs = 20_000,
     ) => {
       let response: Response;
+      let responseText: string;
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
       try {
         response = await fetch(`${api}${path}`, {
           method,
           credentials: "include",
           cache: "no-store",
+          signal: controller.signal,
           headers: {
             ...(body instanceof ArrayBuffer
               ? { "Content-Type": "application/octet-stream" }
@@ -618,12 +644,19 @@ export default function AdminConsole() {
                 body: body instanceof ArrayBuffer ? body : JSON.stringify(body),
               }),
         });
-      } catch {
+        responseText = await response.text();
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          throw new Error(
+            "The admin service did not respond in time. Check the backend status and try again.",
+          );
+        }
         throw new Error(
           "Cannot reach the admin service. Check the connection and try again.",
         );
+      } finally {
+        window.clearTimeout(timeoutId);
       }
-      const responseText = await response.text();
       let result: unknown = null;
       if (responseText.trim()) {
         try {
@@ -728,13 +761,21 @@ export default function AdminConsole() {
   );
   useEffect(() => {
     let alive = true;
-    request("/session")
+    request("/session", "GET", undefined, {}, 8_000)
       .then((body) => {
         if (alive) {
           setRole(body.role || "");
         }
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (
+          alive &&
+          error instanceof Error &&
+          !error.message.includes("Please sign in")
+        ) {
+          setError(error.message);
+        }
+      })
       .finally(() => {
         if (alive) setChecking(false);
       });
@@ -744,7 +785,7 @@ export default function AdminConsole() {
   }, [request]);
   useEffect(() => {
     const syncSession = () => {
-      void request("/session")
+      void request("/session", "GET", undefined, {}, 8_000)
         .then((body) => {
           const nextRole = body.role || "";
           if (nextRole && nextRole !== role) {
@@ -796,8 +837,12 @@ export default function AdminConsole() {
     setBusy(true);
     setError("");
     try {
-      const body = await request("/login", "POST", login);
-      const session = await request("/session").catch(() => null);
+      const body = await retryTransientAuthRequest(() =>
+        request("/login", "POST", login),
+      );
+      const session = await retryTransientAuthRequest(() =>
+        request("/session", "GET", undefined, {}, 8_000),
+      ).catch(() => null);
       if (!session || session.role !== body.role) {
         throw new Error(
           "The login response was received, but this device could not confirm its secure session. Allow cookies for the website and try again.",
@@ -1071,6 +1116,12 @@ export default function AdminConsole() {
                   onClick={() => {
                     setRecoveryChallenge("");
                     setDevelopmentCodes(null);
+                    setRecoveryCodes({
+                      emailCode: "",
+                      phoneCode: "",
+                      newPassword: "",
+                      confirmPassword: "",
+                    });
                     setError("");
                     setNotice("");
                   }}
@@ -1108,6 +1159,7 @@ export default function AdminConsole() {
                 <Field
                   label="Username"
                   value={login.username}
+                  autoComplete="username"
                   onChange={(value) =>
                     setLogin((old) => ({ ...old, username: value }))
                   }
@@ -1134,6 +1186,13 @@ export default function AdminConsole() {
                 type="button"
                 onClick={() => {
                   setRecoveryMode(true);
+                  setRecoveryChallenge("");
+                  setRecoveryCodes({
+                    emailCode: "",
+                    phoneCode: "",
+                    newPassword: "",
+                    confirmPassword: "",
+                  });
                   setDevelopmentCodes(null);
                   setError("");
                   setNotice("");

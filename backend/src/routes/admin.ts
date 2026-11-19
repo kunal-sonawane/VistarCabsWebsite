@@ -16,6 +16,7 @@ import { z } from "zod";
 import Inquiry from "../models/Inquiry";
 import AdminCredential from "../models/AdminCredential";
 import AdminPasswordReset from "../models/AdminPasswordReset";
+import { isDatabaseUnavailable } from "../config/db";
 import {
   hashPassword,
   hashResetCode,
@@ -54,7 +55,9 @@ const passwordResetSchema = z.object({
 export type AdminRole = "owner" | "seo";
 
 function devMode() {
-  return process.env.NODE_ENV !== "production";
+  // Never enable demo credentials or the fallback session key when the
+  // deployment environment is missing or misspelled.
+  return process.env.NODE_ENV === "development";
 }
 function credentials() {
   return {
@@ -85,14 +88,28 @@ function isLocalDevelopmentOrigin(req: Request) {
   return process.env.NODE_ENV === "development" && localHost && localOrigin;
 }
 function isLocalDevelopmentRequest(req: Request) {
-  const developmentDatabase = /(?:^|[_-])(dev|development|test|local)(?:$|[_-])/i.test(
-    process.env.MONGODB_DATABASE_NAME || "",
-  );
+  const developmentDatabase =
+    /(?:^|[_-])(dev|development|test|local)(?:$|[_-])/i.test(
+      process.env.MONGODB_DATABASE_NAME || "",
+    );
   return (
     isLocalDevelopmentOrigin(req) &&
     process.env.ADMIN_RECOVERY_LOCAL_CODES === "true" &&
     developmentDatabase
   );
+}
+function recoveryDeliveryError(error: unknown) {
+  let message =
+    error instanceof Error ? error.message : "Unknown provider error.";
+  for (const name of [
+    "SMTP_PASSWORD",
+    "TWILIO_ACCOUNT_SID",
+    "TWILIO_AUTH_TOKEN",
+  ]) {
+    const secret = process.env[name];
+    if (secret) message = message.split(secret).join("[redacted]");
+  }
+  return message.slice(0, 300);
 }
 function makeToken(role: AdminRole, exp: string, secret: string) {
   const payload = `${role}.${exp}`;
@@ -207,12 +224,7 @@ router.post("/login", loginLimit, async (req, res, next) => {
     }
     const { username, password, secret, seoUsername, seoPassword } =
       credentials();
-    const storedOwnerCredential = username
-      ? await AdminCredential.findOne({ key: "owner" })
-          .select("+passwordHash")
-          .lean()
-      : null;
-    if (!username || !secret || (!password && !storedOwnerCredential)) {
+    if (!secret) {
       res.status(503).json({
         ok: false,
         message: "Admin login is not configured on this server.",
@@ -220,22 +232,36 @@ router.post("/login", loginLimit, async (req, res, next) => {
       return;
     }
     let role: AdminRole | null = null;
-    const ownerPasswordValid = storedOwnerCredential
-      ? await verifyPassword(
-          parsed.data.password,
-          (storedOwnerCredential as unknown as { passwordHash: string })
-            .passwordHash,
-        )
-      : same(parsed.data.password, password);
-    if (same(parsed.data.username, username) && ownerPasswordValid)
-      role = "owner";
-    else if (
+    const seoLoginIsValid =
       seoUsername &&
       seoPassword &&
       same(parsed.data.username, seoUsername) &&
-      same(parsed.data.password, seoPassword)
-    )
+      same(parsed.data.password, seoPassword);
+    if (seoLoginIsValid) {
       role = "seo";
+    } else if (username && same(parsed.data.username, username)) {
+      if (mongoose.connection.readyState !== 1) {
+        res.status(503).json({
+          ok: false,
+          message:
+            "Owner sign-in is temporarily unavailable while account storage reconnects. Please retry shortly.",
+        });
+        return;
+      }
+      const storedOwnerCredential = await AdminCredential.findOne({
+        key: "owner",
+      })
+        .select("+passwordHash")
+        .lean();
+      const ownerPasswordValid = storedOwnerCredential
+        ? await verifyPassword(
+            parsed.data.password,
+            (storedOwnerCredential as unknown as { passwordHash: string })
+              .passwordHash,
+          )
+        : Boolean(password) && same(parsed.data.password, password);
+      if (ownerPasswordValid) role = "owner";
+    }
     if (!role) {
       res
         .status(401)
@@ -254,6 +280,14 @@ router.post("/login", loginLimit, async (req, res, next) => {
     });
     res.json({ ok: true, role, message: "Signed in." });
   } catch (error) {
+    if (isDatabaseUnavailable(error)) {
+      res.status(503).json({
+        ok: false,
+        message:
+          "Admin sign-in is temporarily unavailable while account storage reconnects. Please retry shortly.",
+      });
+      return;
+    }
     next(error);
   }
 });
@@ -315,7 +349,7 @@ router.post(
       } | null = null;
       try {
         await sendRecoveryCodes(emailCode, phoneCode);
-      } catch {
+      } catch (error) {
         if (isLocalDevelopmentRequest(req)) {
           // This requires both an explicit local opt-in and a separate
           // development/test database so it cannot reset production accounts.
@@ -325,7 +359,8 @@ router.post(
           );
         } else {
           console.error(
-            "Admin password recovery delivery is not configured or failed.",
+            "Admin password recovery delivery failed:",
+            recoveryDeliveryError(error),
           );
           res.status(503).json({
             ok: false,
@@ -465,12 +500,14 @@ router.post(
         return;
       }
       const passwordHash = await hashPassword(parsed.data.newPassword);
+      // Clear every live recovery pair before changing the credential so a
+      // cleanup error cannot turn a successful reset into a reported failure.
+      await AdminPasswordReset.deleteMany({});
       await AdminCredential.findOneAndUpdate(
         { key: "owner" },
         { $set: { passwordHash, passwordUpdatedAt: new Date() } },
         { upsert: true, new: true, setDefaultsOnInsert: true },
       );
-      await AdminPasswordReset.deleteOne({ _id: challenge._id });
       res.json({
         ok: true,
         message: "Password changed. Sign in with your new password.",

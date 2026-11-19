@@ -1,6 +1,25 @@
+function siteOrigin() {
+  const fallback =
+    process.env.NODE_ENV === "production"
+      ? "https://vistarcabs.com"
+      : "http://localhost:3000";
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!configured) return fallback;
+  try {
+    const candidate = new URL(
+      configured.includes("://") ? configured : `https://${configured}`,
+    );
+    if (candidate.protocol === "http:" || candidate.protocol === "https:")
+      return candidate.origin;
+  } catch {
+    // Fall back to the known site origin instead of crashing the root layout.
+  }
+  return fallback;
+}
+
 export const site = {
   name: "Vistar Cabs",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+  url: siteOrigin(),
   phone: process.env.NEXT_PUBLIC_PRIMARY_PHONE || "8485884417",
   secondaryPhone: process.env.NEXT_PUBLIC_SECONDARY_PHONE || "8788373586",
   tertiaryPhone: process.env.NEXT_PUBLIC_TERTIARY_PHONE || "8485884417",
