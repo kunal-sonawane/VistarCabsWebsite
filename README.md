@@ -23,7 +23,7 @@ Dependencies are listed in `frontend/package.json` and `backend/package.json`. T
 
 ## Run locally
 
-You need Node.js and npm, plus a reachable MongoDB database. Open two terminals in the project folder.
+You need Node.js 20 or later and npm, plus a reachable MongoDB database. Open two terminals in the project folder.
 
 ### 1. Configure the API
 
@@ -51,7 +51,7 @@ Open `http://localhost:3000`. To check on a phone connected to the same Wi-Fi, s
 
 ## Environment files
 
-- `backend/.env.example` lists API, MongoDB and admin settings. Copy it to `backend/.env` and fill in your own private values.
+- `backend/.env.example` lists API, MongoDB, admin and password-recovery settings. Copy it to `backend/.env` and fill in your own private values. Localhost development can show test recovery codes only when `ADMIN_RECOVERY_LOCAL_CODES=true` and it is connected to a separate database named with `dev`, `development`, `test` or `local`. Production password recovery always requires SMTP and Twilio credentials to deliver the two codes.
 - `frontend/.env.example` lists public website settings such as the website address and contact links. Copy it to `frontend/.env.local` when you need to change them.
 - Never put MongoDB credentials or admin passwords in the frontend environment.
 - For a split frontend/API deployment, set `NEXT_PUBLIC_API_URL` in the frontend build environment to the API origin (for example, `https://api.example.com`, without `/api`) and set the API's `FRONTEND_ORIGIN` to the deployed website origin. Production browser requests use the Next.js `/api` rewrite so admin session cookies stay first-party. Redeploy the frontend after changing `NEXT_PUBLIC_API_URL`.

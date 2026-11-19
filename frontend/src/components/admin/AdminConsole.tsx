@@ -56,7 +56,10 @@ type Section =
 const ADMIN_SESSION_SYNC_KEY = "vistar-admin-session-changed";
 function notifyAdminSessionChanged() {
   try {
-    window.localStorage.setItem(ADMIN_SESSION_SYNC_KEY, `${Date.now()}-${Math.random()}`);
+    window.localStorage.setItem(
+      ADMIN_SESSION_SYNC_KEY,
+      `${Date.now()}-${Math.random()}`,
+    );
   } catch {
     // The current tab still updates its own session state if storage is unavailable.
   }
@@ -133,7 +136,17 @@ type CampaignDraft = {
   status: "draft" | "active" | "paused" | "archived";
   priority: string;
 };
-type BlogDraft = { slug: string; title: string; summary: string; metaTitle: string; metaDescription: string; image: string; imageAlt: string; body: string; status: "draft" | "published" | "archived" };
+type BlogDraft = {
+  slug: string;
+  title: string;
+  summary: string;
+  metaTitle: string;
+  metaDescription: string;
+  image: string;
+  imageAlt: string;
+  body: string;
+  status: "draft" | "published" | "archived";
+};
 
 const emptyPage: PageDraft = {
   slug: "",
@@ -199,8 +212,21 @@ const emptyCampaign: CampaignDraft = {
   status: "draft",
   priority: "0",
 };
-const emptyBlog: BlogDraft = { slug: "", title: "", summary: "", metaTitle: "", metaDescription: "", image: "/images/blogs.jpg", imageAlt: "", body: "", status: "draft" };
-const items: Record<Section, { label: string; icon: any; owner?: boolean; seo?: boolean }> = {
+const emptyBlog: BlogDraft = {
+  slug: "",
+  title: "",
+  summary: "",
+  metaTitle: "",
+  metaDescription: "",
+  image: "/images/blogs.jpg",
+  imageAlt: "",
+  body: "",
+  status: "draft",
+};
+const items: Record<
+  Section,
+  { label: string; icon: any; owner?: boolean; seo?: boolean }
+> = {
   overview: { label: "Overview", icon: LayoutDashboard },
   analytics: { label: "Performance", icon: ChartNoAxesCombined },
   inquiries: { label: "Inquiries", icon: MessageSquareQuote, owner: true },
@@ -209,7 +235,7 @@ const items: Record<Section, { label: string; icon: any; owner?: boolean; seo?: 
   blogs: { label: "Blog posts", icon: FileText, seo: true },
   campaigns: { label: "Promotional banners", icon: Megaphone },
   reviews: { label: "Customer feedback", icon: MessageSquareQuote },
-  media: { label: "Photo library", icon: ImagePlus },
+  media: { label: "Photo library", icon: ImagePlus, seo: true },
   customers: { label: "Customers", icon: Users, owner: true },
   dutySlips: { label: "Corporate duty slips", icon: FileText, owner: true },
   vehicles: { label: "Vehicles", icon: CarFront, owner: true },
@@ -450,6 +476,18 @@ export default function AdminConsole() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [login, setLogin] = useState({ username: "", password: "" });
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [recoveryChallenge, setRecoveryChallenge] = useState("");
+  const [recoveryCodes, setRecoveryCodes] = useState({
+    emailCode: "",
+    phoneCode: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [developmentCodes, setDevelopmentCodes] = useState<{
+    emailCode: string;
+    phoneCode: string;
+  } | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [managedRows, setManagedRows] = useState<Row[]>([]);
   const [mediaAssets, setMediaAssets] = useState<Row[]>([]);
@@ -518,9 +556,34 @@ export default function AdminConsole() {
     setReview(emptyReview);
     setEditingReview("");
     setSettings(emptySettings);
-    setCustomer({ name: "", phone: "", notes: "", tags: "", marketingConsent: false });
-    setDriver({ name: "", phone: "", homeCity: "Nashik", vehicleId: "", status: "available", internalNotes: "" });
-    setVehicle({ label: "", make: "", model: "", category: "Sedan", seats: "4", luggage: "2", registration: "", homeCity: "Nashik", status: "active", imageId: "", imageAlt: "" });
+    setCustomer({
+      name: "",
+      phone: "",
+      notes: "",
+      tags: "",
+      marketingConsent: false,
+    });
+    setDriver({
+      name: "",
+      phone: "",
+      homeCity: "Nashik",
+      vehicleId: "",
+      status: "available",
+      internalNotes: "",
+    });
+    setVehicle({
+      label: "",
+      make: "",
+      model: "",
+      category: "Sedan",
+      seats: "4",
+      luggage: "2",
+      registration: "",
+      homeCity: "Nashik",
+      status: "active",
+      imageId: "",
+      imageAlt: "",
+    });
     setImageAlt("");
     setImageFile(null);
     setError("");
@@ -535,24 +598,31 @@ export default function AdminConsole() {
       body?: unknown,
       headers: HeadersInit = {},
     ) => {
-      const response = await fetch(`${api}${path}`, {
-        method,
-        credentials: "include",
-        cache: "no-store",
-        headers: {
-          ...(body instanceof ArrayBuffer
-            ? { "Content-Type": "application/octet-stream" }
-            : body
-              ? { "Content-Type": "application/json" }
-              : {}),
-          ...headers,
-        },
-        ...(body === undefined
-          ? {}
-          : {
-              body: body instanceof ArrayBuffer ? body : JSON.stringify(body),
-            }),
-      });
+      let response: Response;
+      try {
+        response = await fetch(`${api}${path}`, {
+          method,
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            ...(body instanceof ArrayBuffer
+              ? { "Content-Type": "application/octet-stream" }
+              : body
+                ? { "Content-Type": "application/json" }
+                : {}),
+            ...headers,
+          },
+          ...(body === undefined
+            ? {}
+            : {
+                body: body instanceof ArrayBuffer ? body : JSON.stringify(body),
+              }),
+        });
+      } catch {
+        throw new Error(
+          "Cannot reach the admin service. Check the connection and try again.",
+        );
+      }
       const responseText = await response.text();
       let result: unknown = null;
       if (responseText.trim()) {
@@ -574,7 +644,8 @@ export default function AdminConsole() {
         const reason = responseText.trim()
           ? "non-JSON content"
           : "an empty body";
-        const contentType = response.headers.get("content-type") || "unknown content type";
+        const contentType =
+          response.headers.get("content-type") || "unknown content type";
         throw new Error(
           `Admin request ${path} received HTTP ${response.status} (${contentType}) from ${response.url || api + path} with ${reason}. The browser may be reaching a website page or an outdated API deployment instead of the JSON admin API.`,
         );
@@ -621,7 +692,11 @@ export default function AdminConsole() {
           );
           setRows(body.items || []);
           if (target === "media") setMediaAssets(body.items || []);
-          if (target === "vehicles" || target === "campaigns" || target === "blogs") {
+          if (
+            target === "vehicles" ||
+            target === "campaigns" ||
+            target === "blogs"
+          ) {
             const images = await request("/media");
             setMediaAssets(images.items || []);
           }
@@ -676,10 +751,18 @@ export default function AdminConsole() {
             clearAdminWorkspace();
             setRole(nextRole);
             setSection("overview");
+          } else if (!nextRole && role) {
+            clearAdminWorkspace();
+            setRole("");
+            setSection("overview");
           }
         })
         .catch((error) => {
-          if (role && error instanceof Error && error.message.includes("Please sign in")) {
+          if (
+            role &&
+            error instanceof Error &&
+            error.message.includes("Please sign in")
+          ) {
             clearAdminWorkspace();
             setRole("");
             setSection("overview");
@@ -703,7 +786,8 @@ export default function AdminConsole() {
   const nav = useMemo(
     () =>
       Object.entries(items).filter(
-        ([, item]) => (!item.owner || role === "owner") && (!item.seo || role === "seo"),
+        ([, item]) =>
+          (!item.owner || role === "owner") && (!item.seo || role === "seo"),
       ) as [Section, (typeof items)[Section]][],
     [role],
   );
@@ -713,7 +797,13 @@ export default function AdminConsole() {
     setError("");
     try {
       const body = await request("/login", "POST", login);
-      setRole(body.role);
+      const session = await request("/session").catch(() => null);
+      if (!session || session.role !== body.role) {
+        throw new Error(
+          "The login response was received, but this device could not confirm its secure session. Allow cookies for the website and try again.",
+        );
+      }
+      setRole(session.role);
       notifyAdminSessionChanged();
       setLogin((x) => ({ ...x, password: "" }));
       setNotice(
@@ -725,12 +815,86 @@ export default function AdminConsole() {
       setBusy(false);
     }
   }
+  async function requestPasswordReset(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const body = await request("/password-reset/request", "POST", {});
+      setRecoveryChallenge(body.challengeId || "");
+      setDevelopmentCodes(body.developmentOnlyCodes || null);
+      const destinations = body.destinations || {};
+      const contactHint = body.developmentOnlyCodes
+        ? ""
+        : [destinations.email, destinations.phone]
+            .filter(Boolean)
+            .join(" and ");
+      setNotice(
+        `${body.message || "Verification codes were sent to the recovery contacts."}${contactHint ? ` Check ${contactHint}.` : ""}`,
+      );
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Could not send verification codes.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function confirmPasswordReset(e: React.FormEvent) {
+    e.preventDefault();
+    if (recoveryCodes.newPassword !== recoveryCodes.confirmPassword) {
+      setError("The new passwords do not match.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const body = await request("/password-reset/confirm", "POST", {
+        challengeId: recoveryChallenge,
+        emailCode: recoveryCodes.emailCode,
+        phoneCode: recoveryCodes.phoneCode,
+        newPassword: recoveryCodes.newPassword,
+      });
+      setRecoveryMode(false);
+      setRecoveryChallenge("");
+      setRecoveryCodes({
+        emailCode: "",
+        phoneCode: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setDevelopmentCodes(null);
+      setLogin((old) => ({ ...old, password: "" }));
+      setNotice(
+        body.message || "Password changed. Sign in with your new password.",
+      );
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Could not reset the password.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   async function signOut() {
-    await request("/logout", "POST").catch(() => {});
+    setBusy(true);
+    setError("");
+    try {
+      await request("/logout", "POST");
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Could not sign out. Try again.",
+      );
+      setBusy(false);
+      return;
+    }
     notifyAdminSessionChanged();
     clearAdminWorkspace();
     setRole("");
     setSection("overview");
+    setBusy(false);
   }
   async function save(
     path: string,
@@ -814,32 +978,201 @@ export default function AdminConsole() {
               Configure a separate SEO editor in the backend environment file.
             </div>
           )}
-          <form onSubmit={submitLogin} className="mt-5 space-y-4">
-            <Field
-              label="Username"
-              value={login.username}
-              onChange={(value) =>
-                setLogin((old) => ({ ...old, username: value }))
-              }
-              required
-            />
-            <label className={labelClass}>
-              Password
-              <input
-                className={inputClass}
-                type="password"
-                autoComplete="current-password"
-                value={login.password}
-                onChange={(e) =>
-                  setLogin((old) => ({ ...old, password: e.target.value }))
-                }
-                required
-              />
-            </label>
-            <Button type="submit" disabled={busy}>
-              {busy ? "Signing in…" : "Sign in to admin"}
-            </Button>
-          </form>
+          {recoveryMode ? (
+            recoveryChallenge ? (
+              <form onSubmit={confirmPasswordReset} className="mt-5 space-y-4">
+                <p className="text-sm leading-6 text-slate-600">
+                  Enter the separate six-digit codes sent to the recovery email
+                  and owner phone. Codes expire after 10 minutes.
+                </p>
+                <label className={labelClass}>
+                  Email verification code
+                  <input
+                    className={inputClass}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="[0-9]{6}"
+                    maxLength={6}
+                    value={recoveryCodes.emailCode}
+                    onChange={(e) =>
+                      setRecoveryCodes((old) => ({
+                        ...old,
+                        emailCode: e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 6),
+                      }))
+                    }
+                    required
+                  />
+                </label>
+                <label className={labelClass}>
+                  Phone verification code
+                  <input
+                    className={inputClass}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="[0-9]{6}"
+                    maxLength={6}
+                    value={recoveryCodes.phoneCode}
+                    onChange={(e) =>
+                      setRecoveryCodes((old) => ({
+                        ...old,
+                        phoneCode: e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 6),
+                      }))
+                    }
+                    required
+                  />
+                </label>
+                <label className={labelClass}>
+                  New password
+                  <input
+                    className={inputClass}
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={12}
+                    maxLength={128}
+                    value={recoveryCodes.newPassword}
+                    onChange={(e) =>
+                      setRecoveryCodes((old) => ({
+                        ...old,
+                        newPassword: e.target.value,
+                      }))
+                    }
+                    required
+                  />
+                </label>
+                <label className={labelClass}>
+                  Confirm new password
+                  <input
+                    className={inputClass}
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={12}
+                    maxLength={128}
+                    value={recoveryCodes.confirmPassword}
+                    onChange={(e) =>
+                      setRecoveryCodes((old) => ({
+                        ...old,
+                        confirmPassword: e.target.value,
+                      }))
+                    }
+                    required
+                  />
+                </label>
+                <Button type="submit" disabled={busy}>
+                  {busy ? "Verifying…" : "Verify codes and change password"}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRecoveryChallenge("");
+                    setDevelopmentCodes(null);
+                    setError("");
+                    setNotice("");
+                  }}
+                  className="w-full text-sm font-bold text-blue-800 hover:underline"
+                >
+                  Request new codes
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={requestPasswordReset} className="mt-5 space-y-4">
+                <p className="text-sm leading-6 text-slate-600">
+                  We’ll send one code to the saved recovery email and another to
+                  the owner phone. Both are required to reset the owner
+                  password.
+                </p>
+                <Button type="submit" disabled={busy}>
+                  {busy ? "Sending codes…" : "Send verification codes"}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRecoveryMode(false);
+                    setError("");
+                    setNotice("");
+                  }}
+                  className="w-full text-sm font-bold text-blue-800 hover:underline"
+                >
+                  Back to sign in
+                </button>
+              </form>
+            )
+          ) : (
+            <>
+              <form onSubmit={submitLogin} className="mt-5 space-y-4">
+                <Field
+                  label="Username"
+                  value={login.username}
+                  onChange={(value) =>
+                    setLogin((old) => ({ ...old, username: value }))
+                  }
+                  required
+                />
+                <label className={labelClass}>
+                  Password
+                  <input
+                    className={inputClass}
+                    type="password"
+                    autoComplete="current-password"
+                    value={login.password}
+                    onChange={(e) =>
+                      setLogin((old) => ({ ...old, password: e.target.value }))
+                    }
+                    required
+                  />
+                </label>
+                <Button type="submit" disabled={busy}>
+                  {busy ? "Signing in…" : "Sign in to admin"}
+                </Button>
+              </form>
+              <button
+                type="button"
+                onClick={() => {
+                  setRecoveryMode(true);
+                  setDevelopmentCodes(null);
+                  setError("");
+                  setNotice("");
+                }}
+                className="mt-4 w-full text-sm font-bold text-blue-800 hover:underline"
+              >
+                Forgot password?
+              </button>
+            </>
+          )}
+          {notice && (
+            <p
+              role="status"
+              className="mt-4 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800"
+            >
+              {notice}
+            </p>
+          )}
+          {developmentCodes && recoveryChallenge && (
+            <div
+              role="status"
+              className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-950"
+            >
+              <p className="font-black">Local development codes only</p>
+              <p>
+                Email and SMS delivery isn’t configured here. These codes are
+                shown only for localhost testing; production sends them to the
+                saved email and owner phone.
+              </p>
+              <p className="mt-2">
+                Email code:{" "}
+                <code className="font-black">{developmentCodes.emailCode}</code>
+              </p>
+              <p>
+                Phone code:{" "}
+                <code className="font-black">{developmentCodes.phoneCode}</code>
+              </p>
+            </div>
+          )}
           {error && (
             <p
               role="alert"
@@ -996,7 +1329,19 @@ export default function AdminConsole() {
               remove={remove}
             />
           )}
-          {section === "blogs" && <BlogsManager rows={rows} media={mediaAssets} blog={blog} setBlog={setBlog} editing={editingBlog} setEditing={setEditingBlog} busy={busy} save={save} remove={remove} />}
+          {section === "blogs" && (
+            <BlogsManager
+              rows={rows}
+              media={mediaAssets}
+              blog={blog}
+              setBlog={setBlog}
+              editing={editingBlog}
+              setEditing={setEditingBlog}
+              busy={busy}
+              save={save}
+              remove={remove}
+            />
+          )}
           {section === "campaigns" && (
             <CampaignManager
               rows={rows}
@@ -1167,7 +1512,10 @@ function Overview({
         <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {Object.entries(items)
             .filter(
-              ([key, item]) => key !== "overview" && (!item.owner || role === "owner") && (!item.seo || role === "seo"),
+              ([key, item]) =>
+                key !== "overview" &&
+                (!item.owner || role === "owner") &&
+                (!item.seo || role === "seo"),
             )
             .map(([key, item]) => {
               const Icon = item.icon;
@@ -1188,7 +1536,9 @@ function Overview({
         </div>
       </Card>
       <Card className="mt-4 border-blue-100 bg-blue-50/60">
-        <h2 className="text-sm font-black text-slate-900">Your practical admin guide</h2>
+        <h2 className="text-sm font-black text-slate-900">
+          Your practical admin guide
+        </h2>
         <p className="mt-1 text-xs leading-5 text-slate-600">
           {role === "owner"
             ? "Step-by-step help for enquiries, website updates, feedback, campaigns, photos, duty slips and owner records."
@@ -1196,7 +1546,11 @@ function Overview({
         </p>
         <a
           className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#0758c9] px-4 py-2 text-xs font-black text-white hover:bg-[#0649a6]"
-          href={role === "owner" ? "/owner-admin-guide.pdf" : "/seo-editor-guide.pdf"}
+          href={
+            role === "owner"
+              ? "/owner-admin-guide.pdf"
+              : "/seo-editor-guide.pdf"
+          }
           download
         >
           <FileText size={15} />
@@ -2201,7 +2555,14 @@ function PageStudio({
           >
             Edit built-in page
           </button>
-          {rows.length > 0 && <button onClick={() => editCms(rows[0])} className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-700">Edit existing CMS pages</button>}
+          {rows.length > 0 && (
+            <button
+              onClick={() => editCms(rows[0])}
+              className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-700"
+            >
+              Edit existing CMS pages
+            </button>
+          )}
         </div>
       </Card>
       {tab === "directory" && (
@@ -2612,8 +2973,12 @@ function CampaignManager({
   return (
     <>
       <Card className="border-blue-100 bg-gradient-to-r from-white to-blue-50">
-            <h2 className="text-lg font-black">Website promotional banners</h2>
-            <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-600">Publish offers and promotional cards on the Vistar Cabs website. This does not launch paid Google or Meta ads; those run in their separate advertising accounts.</p>
+        <h2 className="text-lg font-black">Website promotional banners</h2>
+        <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-600">
+          Publish offers and promotional cards on the Vistar Cabs website. This
+          does not launch paid Google or Meta ads; those run in their separate
+          advertising accounts.
+        </p>
         <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-600">
           Create an on-site banner, choose a call-to-action and schedule its
           visibility. Use verified wording and owner-approved offers only. This
@@ -3235,52 +3600,174 @@ function Seo({
   return (
     <>
       <Card>
-        <h2 className="text-lg font-black">SEO workbench · existing website URLs</h2>
+        <h2 className="text-lg font-black">
+          SEO workbench · existing website URLs
+        </h2>
         <p className="mt-1 text-xs leading-5 text-slate-600">
-          Pick a live page from the directory, set its search title and description, record the keyword plan, and open the public page to review it. Keywords here are a planning aid; they are not a hidden ranking switch.
+          Pick a live page from the directory, set its search title and
+          description, record the keyword plan, and open the public page to
+          review it. Keywords here are a planning aid; they are not a hidden
+          ranking switch.
         </p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {pageCatalog.map((item) => (
-            <div key={item.path} className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 px-3 py-2 text-xs hover:border-blue-200 hover:bg-blue-50">
-              <button type="button" className="min-w-0 flex-1 text-left" onClick={() => {
-                const existing = rows.find((row) => row.path === item.path);
-                setSeo({ ...initialSeo, path: item.path, ...(existing ? {
-                  title: existing.title || "", description: existing.description || "", canonicalPath: existing.canonicalPath || "",
-                  noindex: Boolean(existing.noindex), focusPhrase: existing.focusPhrase || "", targetKeywords: existing.targetKeywords || [], seoNotes: existing.seoNotes || "",
-                } : {}) });
-                setEditing(existing?._id || "");
-                document.getElementById("seo-editor-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
-              }}><b className="block truncate">{item.label}</b><span className="text-slate-500">{item.path}</span><span className="mt-1 block font-bold text-blue-800">Choose for SEO edit</span></button>
-              <a href={item.path} aria-label={`Open ${item.label}`} target="_blank" rel="noreferrer" className="shrink-0 text-blue-800"><ExternalLink size={14} /></a>
+            <div
+              key={item.path}
+              className="flex items-center justify-between gap-2 rounded-lg border border-slate-100 px-3 py-2 text-xs hover:border-blue-200 hover:bg-blue-50"
+            >
+              <button
+                type="button"
+                className="min-w-0 flex-1 text-left"
+                onClick={() => {
+                  const existing = rows.find((row) => row.path === item.path);
+                  setSeo({
+                    ...initialSeo,
+                    path: item.path,
+                    ...(existing
+                      ? {
+                          title: existing.title || "",
+                          description: existing.description || "",
+                          canonicalPath: existing.canonicalPath || "",
+                          noindex: Boolean(existing.noindex),
+                          focusPhrase: existing.focusPhrase || "",
+                          targetKeywords: existing.targetKeywords || [],
+                          seoNotes: existing.seoNotes || "",
+                        }
+                      : {}),
+                  });
+                  setEditing(existing?._id || "");
+                  document
+                    .getElementById("seo-editor-form")
+                    ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }}
+              >
+                <b className="block truncate">{item.label}</b>
+                <span className="text-slate-500">{item.path}</span>
+                <span className="mt-1 block font-bold text-blue-800">
+                  Choose for SEO edit
+                </span>
+              </button>
+              <a
+                href={item.path}
+                aria-label={`Open ${item.label}`}
+                target="_blank"
+                rel="noreferrer"
+                className="shrink-0 text-blue-800"
+              >
+                <ExternalLink size={14} />
+              </a>
             </div>
           ))}
         </div>
         <details className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-4">
-          <summary className="cursor-pointer text-sm font-black text-blue-950">Practical SEO guide · follow a page from edit to live</summary>
-          <a href="/seo-editor-guide.pdf" download className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-blue-800">Download the full SEO editor guide (PDF) <ExternalLink size={12}/></a>
+          <summary className="cursor-pointer text-sm font-black text-blue-950">
+            Practical SEO guide · follow a page from edit to live
+          </summary>
+          <a
+            href="/seo-editor-guide.pdf"
+            download
+            className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-blue-800"
+          >
+            Download the full SEO editor guide (PDF) <ExternalLink size={12} />
+          </a>
           <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px]">
             <div className="space-y-3 text-xs leading-5 text-slate-700">
-              <p><b>1. Choose the exact page.</b> Use “Choose for SEO edit” above, then open the arrow to inspect that public URL. Work on one page at a time.</p>
-              <p><b>2. Set what Google can show.</b> Search title is the page title for search results; Search description is the short summary that may appear below it. Write a unique, accurate title and a useful description for that page. Focus phrase and related keywords are private planning notes, not a ranking switch.</p>
-              <p><b>3. Edit what visitors read.</b> For the visible headline, main image, introduction, sections or FAQs, open <b>Website content</b>, find the same URL and select <b>Edit content</b>. Preview first. Keep it Draft for review; choose Published and save to publish page-copy changes.</p>
-              <p><b>4. Save metadata and check the result.</b> Saving this SEO form updates that page’s metadata on the live site right away; it has no separate Draft status. Open the live URL again to review. Search engines may take time to revisit it, and no edit guarantees a ranking.</p>
-              <p><b>5. Measure and improve.</b> Use <b>Performance</b> for enquiries recorded by this website. Use Google Search Console for impressions, clicks, search queries, indexing and sitemap submission after the site owner connects the property. Paid ad campaigns and spend are managed in Google Ads or Meta Ads Manager.</p>
+              <p>
+                <b>1. Choose the exact page.</b> Use “Choose for SEO edit”
+                above, then open the arrow to inspect that public URL. Work on
+                one page at a time.
+              </p>
+              <p>
+                <b>2. Set what Google can show.</b> Search title is the page
+                title for search results; Search description is the short
+                summary that may appear below it. Write a unique, accurate title
+                and a useful description for that page. Focus phrase and related
+                keywords are private planning notes, not a ranking switch.
+              </p>
+              <p>
+                <b>3. Edit what visitors read.</b> For the visible headline,
+                main image, introduction, sections or FAQs, open{" "}
+                <b>Website content</b>, find the same URL and select{" "}
+                <b>Edit content</b>. Preview first. Keep it Draft for review;
+                choose Published and save to publish page-copy changes.
+              </p>
+              <p>
+                <b>4. Save metadata and check the result.</b> Saving this SEO
+                form updates that page’s metadata on the live site right away;
+                it has no separate Draft status. Open the live URL again to
+                review. Search engines may take time to revisit it, and no edit
+                guarantees a ranking.
+              </p>
+              <p>
+                <b>5. Measure and improve.</b> Use <b>Performance</b> for
+                enquiries recorded by this website. Use Google Search Console
+                for impressions, clicks, search queries, indexing and sitemap
+                submission after the site owner connects the property. Paid ad
+                campaigns and spend are managed in Google Ads or Meta Ads
+                Manager.
+              </p>
             </div>
             <div className="rounded-xl bg-white p-3">
-              <Image src="/images/cities/nashik-ramkund-clear.jpg" alt="Ramkund in Nashik, an example image for the Nashik city guide" width={520} height={340} className="h-32 w-full rounded-lg object-cover" />
-              <p className="mt-3 text-xs font-black">Worked example: Nashik city page</p>
-              <p className="mt-1 text-xs leading-5 text-slate-600">URL: <code>/cities/nashik</code><br/>Topic: local Nashik cab and visitor trips<br/>Visible headline and copy: edit in Website content<br/>Search title and description: edit below<br/>Private next-step note: record in “Page-specific SEO notes”</p>
-              <a className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-blue-800" href="/cities/nashik" target="_blank" rel="noreferrer">Inspect live example <ExternalLink size={12}/></a>
+              <Image
+                src="/images/cities/nashik-ramkund-clear.jpg"
+                alt="Ramkund in Nashik, an example image for the Nashik city guide"
+                width={520}
+                height={340}
+                className="h-32 w-full rounded-lg object-cover"
+              />
+              <p className="mt-3 text-xs font-black">
+                Worked example: Nashik city page
+              </p>
+              <p className="mt-1 text-xs leading-5 text-slate-600">
+                URL: <code>/cities/nashik</code>
+                <br />
+                Topic: local Nashik cab and visitor trips
+                <br />
+                Visible headline and copy: edit in Website content
+                <br />
+                Search title and description: edit below
+                <br />
+                Private next-step note: record in “Page-specific SEO notes”
+              </p>
+              <a
+                className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-blue-800"
+                href="/cities/nashik"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Inspect live example <ExternalLink size={12} />
+              </a>
             </div>
           </div>
         </details>
         <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-4">
-          <h3 className="text-sm font-black text-amber-950">Search and ad performance</h3>
-          <p className="mt-1 text-xs leading-5 text-amber-950/80">This panel saves on-page edits and shows enquiry activity under Performance. Search impressions, clicks and rankings need Google Search Console connected; paid campaign setup and spend happen in the ad platform account.</p>
+          <h3 className="text-sm font-black text-amber-950">
+            Search and ad performance
+          </h3>
+          <p className="mt-1 text-xs leading-5 text-amber-950/80">
+            This panel saves on-page edits and shows enquiry activity under
+            Performance. Search impressions, clicks and rankings need Google
+            Search Console connected; paid campaign setup and spend happen in
+            the ad platform account.
+          </p>
           <div className="mt-3 flex flex-wrap gap-4 text-xs font-bold text-blue-800">
-            <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer">Open Search Console ↗</a>
-            <a href="https://ads.google.com/" target="_blank" rel="noreferrer">Open Google Ads ↗</a>
-            <a href="https://www.facebook.com/ads/manager" target="_blank" rel="noreferrer">Open Meta Ads Manager ↗</a>
+            <a
+              href="https://search.google.com/search-console"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open Search Console ↗
+            </a>
+            <a href="https://ads.google.com/" target="_blank" rel="noreferrer">
+              Open Google Ads ↗
+            </a>
+            <a
+              href="https://www.facebook.com/ads/manager"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open Meta Ads Manager ↗
+            </a>
           </div>
         </div>
         <form
@@ -3312,7 +3799,16 @@ function Seo({
           <Field
             label="Related keywords (comma separated)"
             value={seo.targetKeywords.join(", ")}
-            onChange={(v) => setSeo({ ...seo, targetKeywords: v.split(",").map((word) => word.trim()).filter(Boolean).slice(0, 12) })}
+            onChange={(v) =>
+              setSeo({
+                ...seo,
+                targetKeywords: v
+                  .split(",")
+                  .map((word) => word.trim())
+                  .filter(Boolean)
+                  .slice(0, 12),
+              })
+            }
             placeholder="Nashik local cab, Nashik airport taxi"
           />
           <Field
@@ -3338,8 +3834,17 @@ function Seo({
             />
           </div>
           <div className="sm:col-span-2 rounded-xl border border-indigo-100 bg-indigo-50 p-3">
-            <TextField label="Page-specific SEO notes (private to admin; not shown on website)" value={seo.seoNotes} onChange={(v) => setSeo({ ...seo, seoNotes: v })} rows={3} />
-            <p className="mt-1 text-[11px] leading-4 text-slate-600">Record the intended visitor, content changes to make, internal links to add, what to check next, or a Search Console observation. These notes are saved with this URL for the next editor.</p>
+            <TextField
+              label="Page-specific SEO notes (private to admin; not shown on website)"
+              value={seo.seoNotes}
+              onChange={(v) => setSeo({ ...seo, seoNotes: v })}
+              rows={3}
+            />
+            <p className="mt-1 text-[11px] leading-4 text-slate-600">
+              Record the intended visitor, content changes to make, internal
+              links to add, what to check next, or a Search Console observation.
+              These notes are saved with this URL for the next editor.
+            </p>
           </div>
           <label className="flex items-center gap-2 text-xs font-bold">
             <input
@@ -3433,37 +3938,253 @@ const initialSeo = {
   seoNotes: "",
 };
 
-function BlogsManager({ rows, media, blog, setBlog, editing, setEditing, busy, save, remove }: {
-  rows: Row[]; media: Row[]; blog: BlogDraft; setBlog: (value: BlogDraft) => void; editing: string;
-  setEditing: (id: string) => void; busy: boolean;
+function BlogsManager({
+  rows,
+  media,
+  blog,
+  setBlog,
+  editing,
+  setEditing,
+  busy,
+  save,
+  remove,
+}: {
+  rows: Row[];
+  media: Row[];
+  blog: BlogDraft;
+  setBlog: (value: BlogDraft) => void;
+  editing: string;
+  setEditing: (id: string) => void;
+  busy: boolean;
   save: (path: string, method?: string, body?: unknown) => Promise<boolean>;
   remove: (path: string, label: string) => Promise<void>;
 }) {
-  const paragraphs = blog.body.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
-  return <>
-    <Card>
-      <h2 className="text-lg font-black">Create or edit a blog post</h2>
-      <p className="mt-1 text-xs leading-5 text-slate-600">Blogs are the SEO editor’s publishing space. A blog gets its own fixed URL; website pages and route URLs cannot be created here. Save as Draft to keep it private, or Publish when the content is ready.</p>
-      <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={(event) => {
-        event.preventDefault();
-        const payload = { ...blog, publishedLabel: "Vistar Cabs · travel guide", sections: [{ heading: blog.title, paragraphs }], faqs: [] };
-        void save(editing ? `/blogs/${editing}` : "/blogs", editing ? "PUT" : "POST", payload).then((ok) => { if (ok) { setBlog(emptyBlog); setEditing(""); } });
-      }}>
-        <Field label="Blog URL slug (fixed after first save)" value={blog.slug} onChange={(v) => setBlog({ ...blog, slug: v.toLowerCase().replace(/[^a-z0-9-]/g, "-") })} placeholder="nashik-travel-guide" required disabled={Boolean(editing)} />
-        <SelectField label="Status" value={blog.status} onChange={(v) => setBlog({ ...blog, status: v as BlogDraft["status"] })} options={["draft", "published", "archived"]} />
-        <Field label="Blog headline" value={blog.title} onChange={(v) => setBlog({ ...blog, title: v })} maxLength={140} required />
-        <Field label="SEO title (up to 70 characters)" value={blog.metaTitle} onChange={(v) => setBlog({ ...blog, metaTitle: v })} maxLength={70} required />
-        <div className="sm:col-span-2"><TextField label="Short summary" value={blog.summary} onChange={(v) => setBlog({ ...blog, summary: v })} rows={2} required /></div>
-        <div className="sm:col-span-2"><TextField label="Search description" value={blog.metaDescription} onChange={(v) => setBlog({ ...blog, metaDescription: v })} rows={2} required /></div>
-        <Field label="Cover image path" value={blog.image} onChange={(v) => setBlog({ ...blog, image: v })} placeholder="/images/blogs.jpg" required />
-        {media.length > 0 && <label className={labelClass}>Or choose an uploaded photo<select className={inputClass} value={blog.image.startsWith("/api/public/media/") ? blog.image.split("/").pop() : ""} onChange={(event) => setBlog({ ...blog, image: event.target.value ? `/api/public/media/${event.target.value}` : blog.image })}><option value="">Keep current cover</option>{media.map((asset) => <option key={asset.id} value={asset.id}>{asset.alt || asset.originalName || `Photo ${asset.id}`}</option>)}</select></label>}
-        <Field label="Image description (alt text)" value={blog.imageAlt} onChange={(v) => setBlog({ ...blog, imageAlt: v })} maxLength={180} required />
-        <div className="sm:col-span-2"><TextField label="Article text · separate paragraphs with a blank line" value={blog.body} onChange={(v) => setBlog({ ...blog, body: v })} rows={12} required /></div>
-        <div className="flex gap-2 sm:col-span-2"><Button type="submit" disabled={busy}>{editing ? "Save blog changes" : blog.status === "published" ? "Publish blog" : "Save draft"}</Button>{editing && <Button secondary onClick={() => { setBlog(emptyBlog); setEditing(""); }}>Cancel edit</Button>}</div>
-      </form>
-    </Card>
-    <Card className="mt-3"><h3 className="font-black">Saved blog posts</h3><div className="mt-3 space-y-2">{rows.map((row) => <div key={row._id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"><div><b className="text-sm">{row.title}</b><p className="text-xs text-slate-500">/blogs/{row.slug} · {row.status}</p></div><div className="flex gap-2">{row.status === "published" && <Link href={`/blogs/${row.slug}`} target="_blank" className="self-center text-xs font-bold text-blue-800">View ↗</Link>}<Button secondary onClick={() => { setBlog({ slug: row.slug, title: row.title, summary: row.summary, metaTitle: row.metaTitle, metaDescription: row.metaDescription, image: row.image, imageAlt: row.imageAlt, body: (row.sections || []).flatMap((s: Row) => s.paragraphs || []).join("\n\n"), status: row.status }); setEditing(row._id); }}>Edit</Button>{row.status !== "archived" && <Button secondary onClick={() => void remove(`/blogs/${row._id}`, "blog post")}>Archive</Button>}</div></div>)}{!rows.length && <Empty message="No blog posts yet. Create a draft above." />}</div></Card>
-  </>;
+  const paragraphs = blog.body
+    .split(/\n\s*\n/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  return (
+    <>
+      <Card>
+        <h2 className="text-lg font-black">Create or edit a blog post</h2>
+        <p className="mt-1 text-xs leading-5 text-slate-600">
+          Blogs are the SEO editor’s publishing space. A blog gets its own fixed
+          URL; website pages and route URLs cannot be created here. Save as
+          Draft to keep it private, or Publish when the content is ready.
+        </p>
+        <form
+          className="mt-4 grid gap-3 sm:grid-cols-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const payload = {
+              ...blog,
+              publishedLabel: "Vistar Cabs · travel guide",
+              sections: [{ heading: blog.title, paragraphs }],
+              faqs: [],
+            };
+            void save(
+              editing ? `/blogs/${editing}` : "/blogs",
+              editing ? "PUT" : "POST",
+              payload,
+            ).then((ok) => {
+              if (ok) {
+                setBlog(emptyBlog);
+                setEditing("");
+              }
+            });
+          }}
+        >
+          <Field
+            label="Blog URL slug (fixed after first save)"
+            value={blog.slug}
+            onChange={(v) =>
+              setBlog({
+                ...blog,
+                slug: v.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+              })
+            }
+            placeholder="nashik-travel-guide"
+            required
+            disabled={Boolean(editing)}
+          />
+          <SelectField
+            label="Status"
+            value={blog.status}
+            onChange={(v) =>
+              setBlog({ ...blog, status: v as BlogDraft["status"] })
+            }
+            options={["draft", "published", "archived"]}
+          />
+          <Field
+            label="Blog headline"
+            value={blog.title}
+            onChange={(v) => setBlog({ ...blog, title: v })}
+            maxLength={140}
+            required
+          />
+          <Field
+            label="SEO title (up to 70 characters)"
+            value={blog.metaTitle}
+            onChange={(v) => setBlog({ ...blog, metaTitle: v })}
+            maxLength={70}
+            required
+          />
+          <div className="sm:col-span-2">
+            <TextField
+              label="Short summary"
+              value={blog.summary}
+              onChange={(v) => setBlog({ ...blog, summary: v })}
+              rows={2}
+              required
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <TextField
+              label="Search description"
+              value={blog.metaDescription}
+              onChange={(v) => setBlog({ ...blog, metaDescription: v })}
+              rows={2}
+              required
+            />
+          </div>
+          <Field
+            label="Cover image path"
+            value={blog.image}
+            onChange={(v) => setBlog({ ...blog, image: v })}
+            placeholder="/images/blogs.jpg"
+            required
+          />
+          {media.length > 0 && (
+            <label className={labelClass}>
+              Or choose an uploaded photo
+              <select
+                className={inputClass}
+                value={
+                  blog.image.startsWith("/api/public/media/")
+                    ? blog.image.split("/").pop()
+                    : ""
+                }
+                onChange={(event) =>
+                  setBlog({
+                    ...blog,
+                    image: event.target.value
+                      ? `/api/public/media/${event.target.value}`
+                      : blog.image,
+                  })
+                }
+              >
+                <option value="">Keep current cover</option>
+                {media.map((asset) => (
+                  <option key={asset.id} value={asset.id}>
+                    {asset.alt || asset.originalName || `Photo ${asset.id}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <Field
+            label="Image description (alt text)"
+            value={blog.imageAlt}
+            onChange={(v) => setBlog({ ...blog, imageAlt: v })}
+            maxLength={180}
+            required
+          />
+          <div className="sm:col-span-2">
+            <TextField
+              label="Article text · separate paragraphs with a blank line"
+              value={blog.body}
+              onChange={(v) => setBlog({ ...blog, body: v })}
+              rows={12}
+              required
+            />
+          </div>
+          <div className="flex gap-2 sm:col-span-2">
+            <Button type="submit" disabled={busy}>
+              {editing
+                ? "Save blog changes"
+                : blog.status === "published"
+                  ? "Publish blog"
+                  : "Save draft"}
+            </Button>
+            {editing && (
+              <Button
+                secondary
+                onClick={() => {
+                  setBlog(emptyBlog);
+                  setEditing("");
+                }}
+              >
+                Cancel edit
+              </Button>
+            )}
+          </div>
+        </form>
+      </Card>
+      <Card className="mt-3">
+        <h3 className="font-black">Saved blog posts</h3>
+        <div className="mt-3 space-y-2">
+          {rows.map((row) => (
+            <div
+              key={row._id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"
+            >
+              <div>
+                <b className="text-sm">{row.title}</b>
+                <p className="text-xs text-slate-500">
+                  /blogs/{row.slug} · {row.status}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                {row.status === "published" && (
+                  <Link
+                    href={`/blogs/${row.slug}`}
+                    target="_blank"
+                    className="self-center text-xs font-bold text-blue-800"
+                  >
+                    View ↗
+                  </Link>
+                )}
+                <Button
+                  secondary
+                  onClick={() => {
+                    setBlog({
+                      slug: row.slug,
+                      title: row.title,
+                      summary: row.summary,
+                      metaTitle: row.metaTitle,
+                      metaDescription: row.metaDescription,
+                      image: row.image,
+                      imageAlt: row.imageAlt,
+                      body: (row.sections || [])
+                        .flatMap((s: Row) => s.paragraphs || [])
+                        .join("\n\n"),
+                      status: row.status,
+                    });
+                    setEditing(row._id);
+                  }}
+                >
+                  Edit
+                </Button>
+                {row.status !== "archived" && (
+                  <Button
+                    secondary
+                    onClick={() =>
+                      void remove(`/blogs/${row._id}`, "blog post")
+                    }
+                  >
+                    Archive
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+          {!rows.length && (
+            <Empty message="No blog posts yet. Create a draft above." />
+          )}
+        </div>
+      </Card>
+    </>
+  );
 }
 
 function Reviews({
@@ -3493,12 +4214,33 @@ function Reviews({
           Only enter a real customer’s approved words and display name. Ratings
           and quotes will appear publicly only after publishing.
         </p>
-        <p className="mt-2 rounded-lg bg-blue-50 p-3 text-xs leading-5 text-blue-900">The website shows up to 14 published reviews, newest first. New reviews take the first slot; older ones move back and eventually leave the public carousel. They remain saved in this admin list unless you archive them.</p>
-        <div className="mt-3"><Button secondary onClick={() => {
-          if (window.confirm(`Copy the ${workbookReviews.length} reviews currently shown from the website file into the database so they can be managed here? Existing matching database records will be skipped.`)) {
-            void save("/reviews/import-website", "POST", { items: workbookReviews.map(({ customerName, quote }) => ({ customerName, quote })) });
-          }
-        }}>Import existing website reviews into Admin</Button></div>
+        <p className="mt-2 rounded-lg bg-blue-50 p-3 text-xs leading-5 text-blue-900">
+          The website shows up to 14 published reviews, newest first. New
+          reviews take the first slot; older ones move back and eventually leave
+          the public carousel. They remain saved in this admin list unless you
+          archive them.
+        </p>
+        <div className="mt-3">
+          <Button
+            secondary
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Copy the ${workbookReviews.length} reviews currently shown from the website file into the database so they can be managed here? Existing matching database records will be skipped.`,
+                )
+              ) {
+                void save("/reviews/import-website", "POST", {
+                  items: workbookReviews.map(({ customerName, quote }) => ({
+                    customerName,
+                    quote,
+                  })),
+                });
+              }
+            }}
+          >
+            Import existing website reviews into Admin
+          </Button>
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -3524,7 +4266,9 @@ function Reviews({
           <SelectField
             label="Rating"
             value={review.rating === null ? "none" : String(review.rating)}
-            onChange={(v) => setReview({ ...review, rating: v === "none" ? null : Number(v) })}
+            onChange={(v) =>
+              setReview({ ...review, rating: v === "none" ? null : Number(v) })
+            }
             options={["none", "5", "4", "3", "2", "1"]}
           />
           <div className="sm:col-span-2">
@@ -3958,7 +4702,9 @@ function DutySlips({
             "#duty-slip-print-root img",
           ),
         );
-        await Promise.all(images.map((image) => image.decode().catch(() => {})));
+        await Promise.all(
+          images.map((image) => image.decode().catch(() => {})),
+        );
         window.print();
       })();
     }, 200);
@@ -4223,10 +4969,7 @@ function DutySlipPrint({ row }: { row: Row }) {
               Phone: +91 84858 84417 · +91 87883 73586 · Email:{" "}
               <a href={`mailto:${site.email}`}>{site.email}</a>
             </span>
-            <a
-              className="duty-slip-website"
-              href="https://www.vistarcabs.com"
-            >
+            <a className="duty-slip-website" href="https://www.vistarcabs.com">
               www.VistarCabs.com
             </a>
           </div>

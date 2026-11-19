@@ -52,24 +52,26 @@ Text, approved feedback and other supported records saved in the admin are store
 
 Admin sessions expire after eight hours. The backend, frontend and API must be available for admin data to load. A red message in the workspace gives the API error returned for the current screen.
 
+Choose **Forgot password?** on the sign-in page to reset the owner password. The reset requires separate codes for the saved recovery email and owner phone. Codes expire after 10 minutes. Local test codes are available only on localhost when `ADMIN_RECOVERY_LOCAL_CODES=true` and the backend is connected to a separate database whose name includes `dev`, `development`, `test` or `local`. Production sends codes by email and SMS and requires SMTP and Twilio settings in the backend's private environment; see `backend/.env.example`. SEO editor passwords continue to be managed in the backend environment.
+
 ## 3. What each admin section does
 
-| Section | What it is for |
-| --- | --- |
-| **Overview** | Quick counts and shortcuts to common work. A dash or load error means the workspace did not receive that data yet. |
-| **Performance** | Website and enquiry activity over the available 30-day or 90-day view. Treat it as a summary of recorded activity, not a booking forecast. |
-| **Inquiries** *(owner)* | Search trip requests by name, phone or route; filter by **new**, **contacted**, or **closed**; check journey details; and update the follow-up status. The phone number is a tap-to-call link. |
-| **Website Pages** | Find built-in routes, add content to supported pages, create CMS pages, preview edits, publish, schedule, archive and restore saved revisions. |
-| **SEO settings** | Set a search title and description for an existing page, set its canonical path, add an internal focus phrase, or mark it `noindex`. |
-| **Site campaigns** | Create an on-site homepage banner with text, image, button, priority, dates and status. This does not create paid Google or social-media advertising. |
-| **Customer feedback** | Save real customer quotes with approved display names and consent. Published, consent-confirmed entries can appear on the public website. |
-| **Photo library** | Upload and manage images used by supported page editors, campaigns and vehicle records. |
-| **Customers** *(owner)* | Keep a business contact profile, service notes and tags when there is a real service need. Marketing consent is optional and off by default. |
-| **Corporate duty slips** *(owner)* | Prepare, update, print and track corporate trip slips with guest, route, driver, vehicle and trip cost details. |
-| **Vehicles** *(owner)* | Maintain private fleet records such as category, seats, luggage, registration, city, image and active/maintenance status. |
-| **Drivers** *(owner)* | Maintain driver contact, home city, assigned vehicle, availability/status and internal notes. |
-| **Site settings** | Update supported public phone, WhatsApp, email, social links, operating hours and coverage summary. Save to apply the supported settings to the site. |
-| **Change history** *(owner)* | Review recent admin actions, who made them, their role and when they were made. |
+| Section                            | What it is for                                                                                                                                                                                 |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Overview**                       | Quick counts and shortcuts to common work. A dash or load error means the workspace did not receive that data yet.                                                                             |
+| **Performance**                    | Website and enquiry activity over the available 30-day or 90-day view. Treat it as a summary of recorded activity, not a booking forecast.                                                     |
+| **Inquiries** _(owner)_            | Search trip requests by name, phone or route; filter by **new**, **contacted**, or **closed**; check journey details; and update the follow-up status. The phone number is a tap-to-call link. |
+| **Website Pages**                  | Find built-in routes, add content to supported pages, create CMS pages, preview edits, publish, schedule, archive and restore saved revisions.                                                 |
+| **SEO settings**                   | Set a search title and description for an existing page, set its canonical path, add an internal focus phrase, or mark it `noindex`.                                                           |
+| **Site campaigns**                 | Create an on-site homepage banner with text, image, button, priority, dates and status. This does not create paid Google or social-media advertising.                                          |
+| **Customer feedback**              | Save real customer quotes with approved display names and consent. Published, consent-confirmed entries can appear on the public website.                                                      |
+| **Photo library** _(SEO editor)_   | Upload and manage images used by supported page editors, campaigns and vehicle records. The owner can still choose saved images from supported editors.                                        |
+| **Customers** _(owner)_            | Keep a business contact profile, service notes and tags when there is a real service need. Marketing consent is optional and off by default.                                                   |
+| **Corporate duty slips** _(owner)_ | Prepare, update, print and track corporate trip slips with guest, route, driver, vehicle and trip cost details.                                                                                |
+| **Vehicles** _(owner)_             | Maintain private fleet records such as category, seats, luggage, registration, city, image and active/maintenance status.                                                                      |
+| **Drivers** _(owner)_              | Maintain driver contact, home city, assigned vehicle, availability/status and internal notes.                                                                                                  |
+| **Site settings**                  | Update supported public phone, WhatsApp, email, social links, operating hours and coverage summary. Save to apply the supported settings to the site.                                          |
+| **Change history** _(owner)_       | Review recent admin actions, who made them, their role and when they were made.                                                                                                                |
 
 The admin is not a visual page designer. It cannot change CSS, rearrange the site's layout, create new application features, or change the hosting and database setup. Ask for a code change when the editor does not provide the field or behavior you need.
 

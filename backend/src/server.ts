@@ -14,10 +14,28 @@ const port = Number(process.env.PORT || 5000);
 // Hostinger sits behind a reverse proxy and forwards the visitor IP.
 app.set("trust proxy", 1);
 const allowedOrigin = (
-  process.env.FRONTEND_ORIGIN || "http://localhost:3000,http://127.0.0.1:3000"
+  process.env.FRONTEND_ORIGIN ||
+  (process.env.NODE_ENV === "production"
+    ? "https://vistarcabs.com,https://www.vistarcabs.com"
+    : "http://localhost:3000,http://127.0.0.1:3000")
 )
   .split(",")
   .map((s) => s.trim());
+const acceptedOrigins = [
+  ...allowedOrigin,
+  ...(process.env.NODE_ENV === "production"
+    ? ["https://vistarcabs.com", "https://www.vistarcabs.com"]
+    : []),
+];
+function canonicalOrigin(value: string) {
+  try {
+    const url = new URL(value);
+    const hostname = url.hostname.toLowerCase().replace(/^www\./, "");
+    return `${url.protocol}//${hostname}${url.port ? `:${url.port}` : ""}`;
+  } catch {
+    return "";
+  }
+}
 app.disable("x-powered-by");
 app.use(helmet());
 app.use(
@@ -28,9 +46,18 @@ app.use(
         /^http:\/\/(localhost|127\.0\.0\.1|10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2}):3000$/.test(
           origin || "",
         );
-      if (!origin || allowedOrigin.includes(origin) || developmentLan)
+      if (
+        !origin ||
+        acceptedOrigins.includes(origin) ||
+        acceptedOrigins.some(
+          (allowed) => canonicalOrigin(allowed) === canonicalOrigin(origin),
+        ) ||
+        developmentLan
+      )
         return callback(null, true);
-      return callback(new Error("Origin not allowed by CORS"));
+      return callback(
+        Object.assign(new Error("Origin not allowed by CORS"), { status: 403 }),
+      );
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -52,27 +79,26 @@ app.use(
     // Those routes have their own authentication and the login route has a
     // dedicated stricter limiter, so don't let normal admin use exhaust the
     // shared public API quota for an IP/network.
-    skip: (req) => req.path.startsWith("/admin/") && req.path !== "/admin/login",
+    skip: (req) => req.path.startsWith("/admin/"),
     limit: 100,
     standardHeaders: "draft-7",
     legacyHeaders: false,
     message: {
       ok: false,
-      message: "Too many public API requests from this network. Please wait a few minutes and try again.",
+      message:
+        "Too many public API requests from this network. Please wait a few minutes and try again.",
     },
   }),
 );
 app.get("/api/health", (_req, res) => {
   const connected = mongoose.connection.readyState === 1;
-  res
-    .status(connected ? 200 : 503)
-    .json({
-      ok: connected,
-      service: "vistar-cabs-api",
-      storage: connected ? "mongodb" : "database-unavailable",
-      ...(connected ? { database: mongoose.connection.name } : {}),
-      time: new Date().toISOString(),
-    });
+  res.status(connected ? 200 : 503).json({
+    ok: connected,
+    service: "vistar-cabs-api",
+    storage: connected ? "mongodb" : "database-unavailable",
+    ...(connected ? { database: mongoose.connection.name } : {}),
+    time: new Date().toISOString(),
+  });
 });
 app.use("/api/inquiries", inquiriesRouter);
 app.use("/api/admin", adminRouter);
@@ -86,13 +112,22 @@ app.use(
     _next: express.NextFunction,
   ) => {
     console.error(err);
-    res
-      .status(500)
-      .json({
-        ok: false,
-        message:
-          "Something went wrong. Please try again or contact Vistar Cabs directly.",
-      });
+    const status =
+      err &&
+      typeof err === "object" &&
+      "status" in err &&
+      typeof err.status === "number" &&
+      err.status >= 400 &&
+      err.status < 500
+        ? err.status
+        : 500;
+    res.status(status).json({
+      ok: false,
+      message:
+        status === 403
+          ? "This website address is not allowed to access the API. Check FRONTEND_ORIGIN on the backend."
+          : "Something went wrong. Please try again or contact Vistar Cabs directly.",
+    });
   },
 );
 connectDatabase()

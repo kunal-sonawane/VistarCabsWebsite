@@ -52,24 +52,26 @@ Text, approved feedback and other supported records saved in the admin are store
 
 Admin sessions expire after eight hours. The backend, frontend and API must be available for admin data to load. A red message in the workspace gives the API error returned for the current screen.
 
+Choose **Forgot password?** on the sign-in page to reset the owner password. The reset requires separate codes for the saved recovery email and owner phone. Codes expire after 10 minutes. Local test codes are available only on localhost when `ADMIN_RECOVERY_LOCAL_CODES=true` and the backend is connected to a separate database whose name includes `dev`, `development`, `test` or `local`. Production sends codes by email and SMS and requires SMTP and Twilio settings in the backend's private environment; see `backend/.env.example`. SEO editor passwords continue to be managed in the backend environment.
+
 ## 3. What each admin section does
 
-| Section | What it is for |
-| --- | --- |
-| **Overview** | Quick counts and shortcuts to common work. A dash or load error means the workspace did not receive that data yet. |
-| **Performance** | Website and enquiry activity over the available 30-day or 90-day view. Treat it as a summary of recorded activity, not a booking forecast. |
-| **Inquiries** *(owner)* | Search trip requests by name, phone or route; filter by **new**, **contacted**, or **closed**; check journey details; and update the follow-up status. The phone number is a tap-to-call link. |
-| **Website Pages** | Find built-in routes, add content to supported pages, create CMS pages, preview edits, publish, schedule, archive and restore saved revisions. |
-| **SEO settings** | Set a search title and description for an existing page, set its canonical path, add an internal focus phrase, or mark it `noindex`. |
-| **Site campaigns** | Create an on-site homepage banner with text, image, button, priority, dates and status. This does not create paid Google or social-media advertising. |
-| **Customer feedback** | Save real customer quotes with approved display names and consent. Published, consent-confirmed entries can appear on the public website. |
-| **Photo library** | Upload and manage images used by supported page editors, campaigns and vehicle records. |
-| **Customers** *(owner)* | Keep a business contact profile, service notes and tags when there is a real service need. Marketing consent is optional and off by default. |
-| **Corporate duty slips** *(owner)* | Prepare, update, print and track corporate trip slips with guest, route, driver, vehicle and trip cost details. |
-| **Vehicles** *(owner)* | Maintain private fleet records such as category, seats, luggage, registration, city, image and active/maintenance status. |
-| **Drivers** *(owner)* | Maintain driver contact, home city, assigned vehicle, availability/status and internal notes. |
-| **Site settings** | Update supported public phone, WhatsApp, email, social links, operating hours and coverage summary. Save to apply the supported settings to the site. |
-| **Change history** *(owner)* | Review recent admin actions, who made them, their role and when they were made. |
+| Section                            | What it is for                                                                                                                                                                                 |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Overview**                       | Quick counts and shortcuts to common work. A dash or load error means the workspace did not receive that data yet.                                                                             |
+| **Performance**                    | Website and enquiry activity over the available 30-day or 90-day view. Treat it as a summary of recorded activity, not a booking forecast.                                                     |
+| **Inquiries** _(owner)_            | Search trip requests by name, phone or route; filter by **new**, **contacted**, or **closed**; check journey details; and update the follow-up status. The phone number is a tap-to-call link. |
+| **Website Pages**                  | Find built-in routes, add content to supported pages, create CMS pages, preview edits, publish, schedule, archive and restore saved revisions.                                                 |
+| **SEO settings**                   | Set a search title and description for an existing page, set its canonical path, add an internal focus phrase, or mark it `noindex`.                                                           |
+| **Site campaigns**                 | Create an on-site homepage banner with text, image, button, priority, dates and status. This does not create paid Google or social-media advertising.                                          |
+| **Customer feedback**              | Save real customer quotes with approved display names and consent. Published, consent-confirmed entries can appear on the public website.                                                      |
+| **Photo library** _(SEO editor)_   | Upload and manage images used by supported page editors, campaigns and vehicle records. The owner can still choose saved images from supported editors.                                        |
+| **Customers** _(owner)_            | Keep a business contact profile, service notes and tags when there is a real service need. Marketing consent is optional and off by default.                                                   |
+| **Corporate duty slips** _(owner)_ | Prepare, update, print and track corporate trip slips with guest, route, driver, vehicle and trip cost details.                                                                                |
+| **Vehicles** _(owner)_             | Maintain private fleet records such as category, seats, luggage, registration, city, image and active/maintenance status.                                                                      |
+| **Drivers** _(owner)_              | Maintain driver contact, home city, assigned vehicle, availability/status and internal notes.                                                                                                  |
+| **Site settings**                  | Update supported public phone, WhatsApp, email, social links, operating hours and coverage summary. Save to apply the supported settings to the site.                                          |
+| **Change history** _(owner)_       | Review recent admin actions, who made them, their role and when they were made.                                                                                                                |
 
 The admin is not a visual page designer. It cannot change CSS, rearrange the site's layout, create new application features, or change the hosting and database setup. Ask for a code change when the editor does not provide the field or behavior you need.
 
@@ -161,15 +163,15 @@ If the page content is already correct and only its search title/description nee
 
 Open the Nashik page and decide what a visitor needs: for example, arranging a local cab, a station pickup, or a trip to a named nearby destination. The page already has its fixed URL; do not create another URL for the same page.
 
-| Admin field | Example work for this page |
-| --- | --- |
-| Focus phrase | `Nashik local cab service` |
-| Related keywords | `Nashik airport taxi, Nashik Road station cab, Nashik sightseeing cab` |
-| Search title | Write a short, accurate title such as `Nashik Cab Service: Local and Outstation Trips` (adjust to fit the title limit and brand style). |
-| Search description | Summarize the real services on this page and invite the visitor to enquire. Do not promise a fare, vehicle or availability that has not been confirmed. |
-| Visible headline | Change in **Website content → `/cities/nashik` → Edit content**, not in the metadata form. |
-| Main image | Choose a suitable Nashik image in the page editor; describe the actual image in alt text. The guide illustration below is an example image, not a required replacement. |
-| Page-specific SEO notes | Example: `Review Nashik station pickup wording; link to the Nashik–Pune route; check Search Console queries after 30 days; confirm venue details before adding them.` |
+| Admin field             | Example work for this page                                                                                                                                              |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Focus phrase            | `Nashik local cab service`                                                                                                                                              |
+| Related keywords        | `Nashik airport taxi, Nashik Road station cab, Nashik sightseeing cab`                                                                                                  |
+| Search title            | Write a short, accurate title such as `Nashik Cab Service: Local and Outstation Trips` (adjust to fit the title limit and brand style).                                 |
+| Search description      | Summarize the real services on this page and invite the visitor to enquire. Do not promise a fare, vehicle or availability that has not been confirmed.                 |
+| Visible headline        | Change in **Website content → `/cities/nashik` → Edit content**, not in the metadata form.                                                                              |
+| Main image              | Choose a suitable Nashik image in the page editor; describe the actual image in alt text. The guide illustration below is an example image, not a required replacement. |
+| Page-specific SEO notes | Example: `Review Nashik station pickup wording; link to the Nashik–Pune route; check Search Console queries after 30 days; confirm venue details before adding them.`   |
 
 ![Nashik Ramkund example image](/images/cities/nashik-ramkund-clear.jpg)
 
@@ -223,7 +225,9 @@ Before publishing or saving:
 
 **Admin says the API returned an empty or invalid response:** The browser reached something, but it did not return the JSON response the admin expects. Check that the live API origin and website `/api` proxy point to the current backend deployment. On local development, make sure both backend and frontend are running. Check `http://localhost:5000/api/health` locally; do not paste `.env` values into a support message.
 
-**Sign-in fails:** Check that you are using the right role account and the backend is running. If an owner changes admin credentials in the private backend environment, the backend must be restarted or redeployed. Never share a password to troubleshoot.
+**Sign-in fails:** Check that you are using the right role account and the backend is running. If the message says the website origin is not allowed, check the backend `FRONTEND_ORIGIN` setting for the live website address. If sign-in succeeds but the session cannot be confirmed on a phone, allow cookies for the website and try again. If an owner changes an environment credential, the backend must be restarted or redeployed. Never share a password to troubleshoot.
+
+**Forgot password cannot send codes:** Production needs working SMTP and Twilio SMS credentials, plus the verified owner recovery email and phone, in its private backend environment. Localhost can show temporary development codes only when `ADMIN_RECOVERY_LOCAL_CODES=true` and the backend uses a separate database whose name includes `dev`, `development`, `test` or `local`. Check the backend logs and provider account without sharing credentials or OTPs.
 
 **A save fails:** Read the red message, check required fields and character limits, and try again. Check whether the session expired; sign in again if needed. If the API or database is unavailable, wait for it to be restored and then reload the section.
 
